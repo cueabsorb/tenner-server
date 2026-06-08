@@ -1,0 +1,93 @@
+server:
+  port: 8081
+  servlet:
+    context-path: /api
+
+spring:
+  application:
+    name: iRallyIn-AppGateway
+  profiles:
+    active: ${IRALLYIN_PROFILE:dev}
+
+  config:
+    import:
+      - optional:file:./irallyin-variables.yml
+      - optional:file:../irallyin-variables.yml
+      - optional:file:./irallyin-variables-local.yml
+      - optional:file:../irallyin-variables-local.yml
+
+  jackson:
+    date-format: yyyy-MM-dd'T'HH:mm:ss'Z'
+    time-zone: UTC
+    default-property-inclusion: non_null
+    serialization:
+      write-dates-as-timestamps: false
+
+  # MySQL - 凭证集中管理在 irallyin-variables.yml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${irallyin.vars.mysql.url}
+    username: ${irallyin.vars.mysql.username}
+    password: ${irallyin.vars.mysql.password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  data:
+    redis:
+      host: ${irallyin.vars.redis.host}
+      port: ${irallyin.vars.redis.port}
+      password: ${irallyin.vars.redis.password}
+      database: ${irallyin.vars.redis.database}
+      timeout: ${irallyin.vars.redis.timeout}
+      jedis:
+        pool:
+          max-active: ${irallyin.vars.redis.max-active}
+          max-idle: ${irallyin.vars.redis.max-idle}
+          min-idle: ${irallyin.vars.redis.min-idle}
+
+  mail:
+    host: ${irallyin.vars.mail.smtp-host}
+    port: ${irallyin.vars.mail.smtp-port}
+    username: ${irallyin.vars.mail.username}
+    password: ${irallyin.vars.mail.password}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  flyway:
+    enabled: false
+
+jwt:
+  secret: ${irallyin.vars.jwt.secret}
+  access-token-expiration: ${irallyin.vars.jwt.access-token-expiration}
+  refresh-token-expiration: ${irallyin.vars.jwt.refresh-token-expiration}
+
+google:
+  oauth:
+    client-id: ${irallyin.vars.google.oauth.client-id}
+    client-secret: ${irallyin.vars.google.oauth.client-secret}
+
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: assign_uuid
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+logging:
+  config: classpath:logback-spring.xml
+  file:
+    path: ${irallyin.vars.logging.log-path:../log}
+  level:
+    com.irallyin.server: DEBUG

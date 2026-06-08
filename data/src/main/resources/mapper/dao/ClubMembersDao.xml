@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.ClubMembersDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_club`.`club_members`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('club_id')">`club_id`,</if>
+            <if test="_parameter.containsKey('user_id')">`user_id`,</if>
+            <if test="_parameter.containsKey('role')">`role`,</if>
+            <if test="_parameter.containsKey('member_status')">`member_status`,</if>
+            <if test="_parameter.containsKey('joined_at')">`joined_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('club_id')">#{club_id},</if>
+            <if test="_parameter.containsKey('user_id')">#{user_id},</if>
+            <if test="_parameter.containsKey('role')">#{role},</if>
+            <if test="_parameter.containsKey('member_status')">#{member_status},</if>
+            <if test="_parameter.containsKey('joined_at')">#{joined_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_club`.`club_members`
+        <set>
+            <if test="_parameter.containsKey('club_id')">`club_id` = #{club_id},</if>
+            <if test="_parameter.containsKey('user_id')">`user_id` = #{user_id},</if>
+            <if test="_parameter.containsKey('role')">`role` = #{role},</if>
+            <if test="_parameter.containsKey('member_status')">`member_status` = #{member_status},</if>
+            <if test="_parameter.containsKey('joined_at')">`joined_at` = #{joined_at},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_club`.`club_members`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_club`.`club_members`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

@@ -1,0 +1,103 @@
+# Backup of irallyin-variables.yml (migrated to irallyin-variables.properties)
+# Original contents moved here for reference.
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+irallyin:
+  vars:
+    server:
+      port: 8080
+      context-path: /api
+    # 数据源配置已移至 shardingsphere-dev.yaml / shardingsphere-prod.yaml
+    redis:
+      host: localhost
+      port: 6379
+      password: ${irallyin.secrets.redis.password:}
+      database: 0
+      timeout: 5000ms
+      max-active: 20
+      max-idle: 10
+      min-idle: 5
+    mongodb:
+      uri: ${irallyin.secrets.mongodb.uri:mongodb://localhost:27017/irallyin_activity}
+    mail:
+      smtp-host: smtp.qq.com
+      smtp-port: 587
+      username: irallyin@foxmail.com
+      password: ${irallyin.secrets.mail.password:mypaeunchdwobceg}
+      imap-host: imap.qq.com
+      imap-port: 993
+      imap-ssl: true
+    jwt:
+      secret: ${irallyin.secrets.jwt.secret:dev-secret-key-change-in-production-at-least-256-bits-long-for-hs256}
+      access-token-expiration: 7200000
+      refresh-token-expiration: 2592000000
+    google:
+      oauth:
+        client-id: ${irallyin.secrets.google.oauth.client-id:dev-google-client-id.apps.googleusercontent.com}
+        client-secret: ${irallyin.secrets.google.oauth.client-secret:}
+    oss:
+      endpoint: https://oss-cn-shanghai.aliyuncs.com
+      access-key-id: ${irallyin.secrets.oss.access-key-id:dev-access-key}
+      access-key-secret: ${irallyin.secrets.oss.access-key-secret:dev-access-secret}
+      bucket-name: irallyin-media-dev
+      cdn-domain: https://cdn-dev.irallyin.com
+    logging:
+      application-level: DEBUG
+      security-level: DEBUG
+      mybatis-plus-level: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+irallyin:
+  vars:
+    server:
+      port: 8080
+      context-path: /api
+    # 数据源配置已移至 shardingsphere-dev.yaml / shardingsphere-prod.yaml
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+      database: 0
+      timeout: 3000ms
+      max-active: 100
+      max-idle: 30
+      min-idle: 10
+    mongodb:
+      uri: ${MONGODB_URI}
+    mail:
+      smtp-host: ${MAIL_SMTP_HOST:smtp.qq.com}
+      smtp-port: ${MAIL_SMTP_PORT:587}
+      username: ${MAIL_USERNAME:irallyin@foxmail.com}
+      password: ${MAIL_PASSWORD:mypaeunchdwobceg}
+      imap-host: ${MAIL_IMAP_HOST:imap.qq.com}
+      imap-port: ${MAIL_IMAP_PORT:993}
+      imap-ssl: true
+    jwt:
+      secret: ${JWT_SECRET}
+      access-token-expiration: 7200000
+      refresh-token-expiration: 2592000000
+    google:
+      oauth:
+        client-id: ${GOOGLE_OAUTH_CLIENT_ID}
+        client-secret: ${GOOGLE_OAUTH_CLIENT_SECRET:}
+    oss:
+      endpoint: https://oss-cn-shanghai.aliyuncs.com
+      access-key-id: ${OSS_ACCESS_KEY_ID}
+      access-key-secret: ${OSS_ACCESS_KEY_SECRET}
+      bucket-name: irallyin-media
+      cdn-domain: https://cdn.irallyin.com
+    logging:
+      application-level: INFO
+      security-level: WARN
+      mybatis-plus-level: DEBUG
+

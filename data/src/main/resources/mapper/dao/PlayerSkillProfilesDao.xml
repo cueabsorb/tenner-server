@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.PlayerSkillProfilesDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_profile`.`player_skill_profiles`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('user_id')">`user_id`,</if>
+            <if test="_parameter.containsKey('ntrp_rating')">`ntrp_rating`,</if>
+            <if test="_parameter.containsKey('player_identity')">`player_identity`,</if>
+            <if test="_parameter.containsKey('confidence_score')">`confidence_score`,</if>
+            <if test="_parameter.containsKey('verified_level')">`verified_level`,</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('user_id')">#{user_id},</if>
+            <if test="_parameter.containsKey('ntrp_rating')">#{ntrp_rating},</if>
+            <if test="_parameter.containsKey('player_identity')">#{player_identity},</if>
+            <if test="_parameter.containsKey('confidence_score')">#{confidence_score},</if>
+            <if test="_parameter.containsKey('verified_level')">#{verified_level},</if>
+            <if test="_parameter.containsKey('updated_at')">#{updated_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_profile`.`player_skill_profiles`
+        <set>
+            <if test="_parameter.containsKey('user_id')">`user_id` = #{user_id},</if>
+            <if test="_parameter.containsKey('ntrp_rating')">`ntrp_rating` = #{ntrp_rating},</if>
+            <if test="_parameter.containsKey('player_identity')">`player_identity` = #{player_identity},</if>
+            <if test="_parameter.containsKey('confidence_score')">`confidence_score` = #{confidence_score},</if>
+            <if test="_parameter.containsKey('verified_level')">`verified_level` = #{verified_level},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at` = #{updated_at},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_profile`.`player_skill_profiles`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`player_skill_profiles`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

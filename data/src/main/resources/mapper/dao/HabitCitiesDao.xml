@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.HabitCitiesDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_profile`.`habit_cities`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('habit_id')">`habit_id`,</if>
+            <if test="_parameter.containsKey('city_code')">`city_code`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('habit_id')">#{habit_id},</if>
+            <if test="_parameter.containsKey('city_code')">#{city_code},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_profile`.`habit_cities`
+        <set>
+            <if test="_parameter.containsKey('habit_id')">`habit_id` = #{habit_id},</if>
+            <if test="_parameter.containsKey('city_code')">`city_code` = #{city_code},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_profile`.`habit_cities`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`habit_cities`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

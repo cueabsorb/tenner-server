@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.ClubJoinRequestsDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_club`.`club_join_requests`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('club_id')">`club_id`,</if>
+            <if test="_parameter.containsKey('user_id')">`user_id`,</if>
+            <if test="_parameter.containsKey('message')">`message`,</if>
+            <if test="_parameter.containsKey('request_status')">`request_status`,</if>
+            <if test="_parameter.containsKey('reviewed_by')">`reviewed_by`,</if>
+            <if test="_parameter.containsKey('reviewed_at')">`reviewed_at`,</if>
+            <if test="_parameter.containsKey('created_at')">`created_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('club_id')">#{club_id},</if>
+            <if test="_parameter.containsKey('user_id')">#{user_id},</if>
+            <if test="_parameter.containsKey('message')">#{message},</if>
+            <if test="_parameter.containsKey('request_status')">#{request_status},</if>
+            <if test="_parameter.containsKey('reviewed_by')">#{reviewed_by},</if>
+            <if test="_parameter.containsKey('reviewed_at')">#{reviewed_at},</if>
+            <if test="_parameter.containsKey('created_at')">#{created_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_club`.`club_join_requests`
+        <set>
+            <if test="_parameter.containsKey('club_id')">`club_id` = #{club_id},</if>
+            <if test="_parameter.containsKey('user_id')">`user_id` = #{user_id},</if>
+            <if test="_parameter.containsKey('message')">`message` = #{message},</if>
+            <if test="_parameter.containsKey('request_status')">`request_status` = #{request_status},</if>
+            <if test="_parameter.containsKey('reviewed_by')">`reviewed_by` = #{reviewed_by},</if>
+            <if test="_parameter.containsKey('reviewed_at')">`reviewed_at` = #{reviewed_at},</if>
+            <if test="_parameter.containsKey('created_at')">`created_at` = #{created_at},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_club`.`club_join_requests`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_club`.`club_join_requests`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

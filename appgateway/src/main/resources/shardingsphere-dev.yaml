@@ -1,0 +1,23 @@
+# ShardingSphere 5.5.x config for local appgateway development.
+# Single database passthrough for now; add sharding rules later when needed.
+
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/ir_auth?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: root
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+
+rules: []
+
+props:
+  sql-show: true

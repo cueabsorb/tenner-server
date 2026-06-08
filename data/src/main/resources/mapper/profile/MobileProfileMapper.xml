@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.mapper.MobileProfileMapper">
+
+    <select id="findActiveUserById" resultType="map">
+        SELECT *
+        FROM `ir_auth`.`users`
+        WHERE `id` = #{userId}
+          AND `deleted_at` IS NULL
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <select id="findUserById" resultType="map">
+        SELECT *
+        FROM `ir_auth`.`users`
+        WHERE `id` = #{userId}
+        LIMIT 1
+    </select>
+
+    <update id="updateUser">
+        UPDATE `ir_auth`.`users`
+        <set>
+            <if test="values.containsKey('avatar_url')">`avatar_url` = #{values.avatar_url},</if>
+            <if test="values.containsKey('display_name')">`display_name` = #{values.display_name},</if>
+            <if test="values.containsKey('bio')">`bio` = #{values.bio},</if>
+            <if test="values.containsKey('real_name_visible')">`real_name_visible` = #{values.real_name_visible},</if>
+            <if test="values.containsKey('gender')">`gender` = #{values.gender},</if>
+            <if test="values.containsKey('birthday')">`birthday` = #{values.birthday},</if>
+            <if test="values.containsKey('country')">`country` = #{values.country},</if>
+            <if test="values.containsKey('province')">`province` = #{values.province},</if>
+            <if test="values.containsKey('city')">`city` = #{values.city},</if>
+            <if test="values.containsKey('district')">`district` = #{values.district},</if>
+            <if test="values.containsKey('ntrp_rating')">`ntrp_rating` = #{values.ntrp_rating},</if>
+            <if test="values.containsKey('player_identity')">`player_identity` = #{values.player_identity},</if>
+            <if test="values.containsKey('dominant_hand')">`dominant_hand` = #{values.dominant_hand},</if>
+            `updated_at` = CURRENT_TIMESTAMP
+        </set>
+        WHERE `id` = #{userId}
+          AND `deleted_at` IS NULL
+    </update>
+
+    <select id="findActiveTennisProfileByUserId" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`tennis_profiles`
+        WHERE `user_id` = #{userId}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertTennisProfile">
+        INSERT INTO `ir_profile`.`tennis_profiles` (`id`, `user_id`, `status`)
+        VALUES (#{id}, #{userId}, 0)
+    </insert>
+
+    <update id="updateTennisProfile">
+        UPDATE `ir_profile`.`tennis_profiles`
+        <set>
+            <if test="values.containsKey('play_preference')">`play_preference` = #{values.play_preference},</if>
+            <if test="values.containsKey('backhand_type')">`backhand_type` = #{values.backhand_type},</if>
+            <if test="values.containsKey('playing_style')">`playing_style` = #{values.playing_style},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findActiveSkillProfileByUserId" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`player_skill_profiles`
+        WHERE `user_id` = #{userId}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertSkillProfile">
+        INSERT INTO `ir_profile`.`player_skill_profiles`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">`id`,</if>
+            <if test="values.containsKey('user_id')">`user_id`,</if>
+            <if test="values.containsKey('ntrp_rating')">`ntrp_rating`,</if>
+            <if test="values.containsKey('player_identity')">`player_identity`,</if>
+            <if test="values.containsKey('confidence_score')">`confidence_score`,</if>
+            <if test="values.containsKey('verified_level')">`verified_level`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">#{values.id},</if>
+            <if test="values.containsKey('user_id')">#{values.user_id},</if>
+            <if test="values.containsKey('ntrp_rating')">#{values.ntrp_rating},</if>
+            <if test="values.containsKey('player_identity')">#{values.player_identity},</if>
+            <if test="values.containsKey('confidence_score')">#{values.confidence_score},</if>
+            <if test="values.containsKey('verified_level')">#{values.verified_level},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateSkillProfile">
+        UPDATE `ir_profile`.`player_skill_profiles`
+        <set>
+            <if test="values.containsKey('ntrp_rating')">`ntrp_rating` = #{values.ntrp_rating},</if>
+            <if test="values.containsKey('player_identity')">`player_identity` = #{values.player_identity},</if>
+            <if test="values.containsKey('confidence_score')">`confidence_score` = #{values.confidence_score},</if>
+            <if test="values.containsKey('verified_level')">`verified_level` = #{values.verified_level},</if>
+            `updated_at` = CURRENT_TIMESTAMP
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findActivePlayingHabitByUserId" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`playing_habits`
+        WHERE `user_id` = #{userId}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertPlayingHabit">
+        INSERT INTO `ir_profile`.`playing_habits`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">`id`,</if>
+            <if test="values.containsKey('user_id')">`user_id`,</if>
+            <if test="values.containsKey('play_preference')">`play_preference`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">#{values.id},</if>
+            <if test="values.containsKey('user_id')">#{values.user_id},</if>
+            <if test="values.containsKey('play_preference')">#{values.play_preference},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updatePlayingHabit">
+        UPDATE `ir_profile`.`playing_habits`
+        <set>
+            <if test="values.containsKey('play_preference')">`play_preference` = #{values.play_preference},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findHabitCourtsByUserId" resultType="map">
+        SELECT c.`id`,
+               c.`name`,
+               c.`address`,
+               NULL AS `country`,
+               NULL AS `city`,
+               c.`contact_phone`,
+               c.`venue_status`,
+               NULL AS `approval_status`,
+               hc.`is_primary`
+        FROM `ir_profile`.`playing_habits` ph
+        JOIN `ir_profile`.`habit_courts` hc
+          ON hc.`habit_id` = ph.`id`
+         AND hc.`status` = 0
+        JOIN `ir_profile`.`courts` c
+          ON c.`id` = hc.`court_id`
+         AND c.`status` = 0
+        WHERE ph.`user_id` = #{userId}
+          AND ph.`status` = 0
+        ORDER BY hc.`is_primary` DESC, c.`name`
+    </select>
+
+    <select id="searchCourts" resultType="map">
+        SELECT c.`id`,
+               c.`name`,
+               c.`address`,
+               NULL AS `country`,
+               NULL AS `city`,
+               c.`contact_phone`,
+               c.`venue_status`,
+               NULL AS `approval_status`,
+               0 AS `is_primary`
+        FROM `ir_profile`.`courts` c
+        WHERE c.`status` = 0
+          <if test="keyword != null and keyword != ''">
+              AND (c.`name` LIKE CONCAT('%', #{keyword}, '%')
+                   OR c.`address` LIKE CONCAT('%', #{keyword}, '%'))
+          </if>
+        ORDER BY c.`venue_status` = 'active' DESC, c.`name`
+        LIMIT 20
+    </select>
+
+    <select id="findActiveCourtById" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`courts`
+        WHERE `id` = #{courtId}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertCourt">
+        INSERT INTO `ir_profile`.`courts`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">`id`,</if>
+            <if test="values.containsKey('country')">`country`,</if>
+            <if test="values.containsKey('city')">`city`,</if>
+            <if test="values.containsKey('area_code')">`area_code`,</if>
+            <if test="values.containsKey('name')">`name`,</if>
+            <if test="values.containsKey('address')">`address`,</if>
+            <if test="values.containsKey('latitude')">`latitude`,</if>
+            <if test="values.containsKey('longitude')">`longitude`,</if>
+            <if test="values.containsKey('contact_phone')">`contact_phone`,</if>
+            <if test="values.containsKey('wechat_mini_program_name')">`wechat_mini_program_name`,</if>
+            <if test="values.containsKey('photo_urls')">`photo_urls`,</if>
+            <if test="values.containsKey('description')">`description`,</if>
+            <if test="values.containsKey('created_by')">`created_by`,</if>
+            <if test="values.containsKey('venue_status')">`venue_status`,</if>
+            <if test="values.containsKey('approval_status')">`approval_status`,</if>
+            <if test="values.containsKey('operator_managed')">`operator_managed`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">#{values.id},</if>
+            <if test="values.containsKey('country')">#{values.country},</if>
+            <if test="values.containsKey('city')">#{values.city},</if>
+            <if test="values.containsKey('area_code')">#{values.area_code},</if>
+            <if test="values.containsKey('name')">#{values.name},</if>
+            <if test="values.containsKey('address')">#{values.address},</if>
+            <if test="values.containsKey('latitude')">#{values.latitude},</if>
+            <if test="values.containsKey('longitude')">#{values.longitude},</if>
+            <if test="values.containsKey('contact_phone')">#{values.contact_phone},</if>
+            <if test="values.containsKey('wechat_mini_program_name')">#{values.wechat_mini_program_name},</if>
+            <if test="values.containsKey('photo_urls')">#{values.photo_urls},</if>
+            <if test="values.containsKey('description')">#{values.description},</if>
+            <if test="values.containsKey('created_by')">#{values.created_by},</if>
+            <if test="values.containsKey('venue_status')">#{values.venue_status},</if>
+            <if test="values.containsKey('approval_status')">#{values.approval_status},</if>
+            <if test="values.containsKey('operator_managed')">#{values.operator_managed},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="deactivatePrimaryHabitCourts">
+        UPDATE `ir_profile`.`habit_courts`
+        SET `is_primary` = 0
+        WHERE `habit_id` = #{habitId}
+          AND `status` = 0
+    </update>
+
+    <insert id="upsertHabitCourt">
+        INSERT INTO `ir_profile`.`habit_courts` (`id`, `habit_id`, `court_id`, `is_primary`, `status`)
+        VALUES (#{id}, #{habitId}, #{courtId}, #{isPrimary}, 0)
+        ON DUPLICATE KEY UPDATE `is_primary` = VALUES(`is_primary`), `status` = 0
+    </insert>
+
+    <update id="deactivateStrengthTags">
+        UPDATE `ir_profile`.`tennis_profile_strength_tags`
+        SET `status` = -1
+        WHERE `profile_id` = #{profileId}
+    </update>
+
+    <insert id="upsertStrengthTag">
+        INSERT INTO `ir_profile`.`tennis_profile_strength_tags` (`id`, `profile_id`, `tag`, `status`)
+        VALUES (#{id}, #{profileId}, #{tag}, 0)
+        ON DUPLICATE KEY UPDATE `status` = 0
+    </insert>
+
+    <select id="findActiveStrengthTags" resultType="string">
+        SELECT `tag`
+        FROM `ir_profile`.`tennis_profile_strength_tags`
+        WHERE `profile_id` = #{profileId}
+          AND `status` = 0
+        ORDER BY `tag`
+    </select>
+
+    <select id="findAvailabilitySlots" resultType="map">
+        SELECT hws.`day_of_week`, hws.`start_time`, hws.`end_time`
+        FROM `ir_profile`.`playing_habits` ph
+        JOIN `ir_profile`.`habit_weekly_slots` hws
+          ON hws.`habit_id` = ph.`id`
+         AND hws.`status` = 0
+        WHERE ph.`user_id` = #{userId}
+          AND ph.`status` = 0
+        ORDER BY hws.`day_of_week`, hws.`start_time`
+        LIMIT 3
+    </select>
+
+    <select id="countEditLogsSince" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_profile`.`profile_edit_audit_logs`
+        WHERE `user_id` = #{userId}
+          AND `field_name` = #{fieldName}
+          AND `status` = 0
+          AND `created_at` &gt;= #{since}
+    </select>
+
+    <insert id="insertEditLog">
+        INSERT INTO `ir_profile`.`profile_edit_audit_logs` (`id`, `user_id`, `field_name`, `status`)
+        VALUES (#{id}, #{userId}, #{fieldName}, 0)
+    </insert>
+
+    <select id="countFollowing" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_activity`.`player_relationship_edges`
+        WHERE `user_id` = #{userId}
+          AND `status` = 0
+    </select>
+
+    <select id="countFollowers" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_activity`.`player_relationship_edges`
+        WHERE `peer_user_id` = #{userId}
+          AND `status` = 0
+    </select>
+
+    <select id="sumReceivedLikes" resultType="int">
+        SELECT COALESCE(SUM(`like_count`), 0)
+        FROM `ir_social`.`feed_posts`
+        WHERE `author_id` = #{userId}
+          AND `status` = 0
+    </select>
+
+</mapper>

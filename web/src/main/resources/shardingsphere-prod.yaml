@@ -1,0 +1,25 @@
+# ShardingSphere 5.5.x 配置 - 生产环境
+# 当前：单库透传，不分片。用户量达 10W 后再启用分库分表。
+
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://${DB_HOST}:3306/ir_auth?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&useSSL=true
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    maximumPoolSize: 50
+    minimumIdle: 10
+    connectionTimeout: 30000
+    idleTimeout: 600000
+    maxLifetime: 1800000
+
+rules: []
+
+props:
+  sql-show: false

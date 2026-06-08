@@ -1,0 +1,24 @@
+# ShardingSphere 5.5.x 配置 - 开发环境
+# 当前：单库透传，不分片。用户量达 10W 后再启用分库分表。
+# 启用分片时：添加 ds_1 数据源 + 各表的分片规则即可
+
+mode:
+  type: Standalone
+  repository:
+    type: JDBC
+
+dataSources:
+  ds_0:
+    dataSourceClassName: com.zaxxer.hikari.HikariDataSource
+    driverClassName: com.mysql.cj.jdbc.Driver
+    jdbcUrl: jdbc:mysql://localhost:3306/ir_auth?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: root
+    maximumPoolSize: 10
+    minimumIdle: 5
+    connectionTimeout: 30000
+
+rules: []
+
+props:
+  sql-show: true

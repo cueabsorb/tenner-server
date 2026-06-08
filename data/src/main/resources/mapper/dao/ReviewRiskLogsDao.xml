@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.ReviewRiskLogsDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_review`.`review_risk_logs`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('review_id')">`review_id`,</if>
+            <if test="_parameter.containsKey('risk_type')">`risk_type`,</if>
+            <if test="_parameter.containsKey('risk_detail')">`risk_detail`,</if>
+            <if test="_parameter.containsKey('created_at')">`created_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('review_id')">#{review_id},</if>
+            <if test="_parameter.containsKey('risk_type')">#{risk_type},</if>
+            <if test="_parameter.containsKey('risk_detail')">#{risk_detail},</if>
+            <if test="_parameter.containsKey('created_at')">#{created_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_review`.`review_risk_logs`
+        <set>
+            <if test="_parameter.containsKey('review_id')">`review_id` = #{review_id},</if>
+            <if test="_parameter.containsKey('risk_type')">`risk_type` = #{risk_type},</if>
+            <if test="_parameter.containsKey('risk_detail')">`risk_detail` = #{risk_detail},</if>
+            <if test="_parameter.containsKey('created_at')">`created_at` = #{created_at},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_review`.`review_risk_logs`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_review`.`review_risk_logs`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

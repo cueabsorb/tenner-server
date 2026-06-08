@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.SkillCertificationsDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_profile`.`skill_certifications`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('user_id')">`user_id`,</if>
+            <if test="_parameter.containsKey('cert_type')">`cert_type`,</if>
+            <if test="_parameter.containsKey('cert_status')">`cert_status`,</if>
+            <if test="_parameter.containsKey('requested_ntrp')">`requested_ntrp`,</if>
+            <if test="_parameter.containsKey('final_ntrp')">`final_ntrp`,</if>
+            <if test="_parameter.containsKey('player_identity')">`player_identity`,</if>
+            <if test="_parameter.containsKey('coach_id')">`coach_id`,</if>
+            <if test="_parameter.containsKey('coach_comment')">`coach_comment`,</if>
+            <if test="_parameter.containsKey('video_analysis_result')">`video_analysis_result`,</if>
+            <if test="_parameter.containsKey('big_data_score')">`big_data_score`,</if>
+            <if test="_parameter.containsKey('submitted_at')">`submitted_at`,</if>
+            <if test="_parameter.containsKey('verified_at')">`verified_at`,</if>
+            <if test="_parameter.containsKey('expired_at')">`expired_at`,</if>
+            <if test="_parameter.containsKey('rejected_reason')">`rejected_reason`,</if>
+            <if test="_parameter.containsKey('created_at')">`created_at`,</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('user_id')">#{user_id},</if>
+            <if test="_parameter.containsKey('cert_type')">#{cert_type},</if>
+            <if test="_parameter.containsKey('cert_status')">#{cert_status},</if>
+            <if test="_parameter.containsKey('requested_ntrp')">#{requested_ntrp},</if>
+            <if test="_parameter.containsKey('final_ntrp')">#{final_ntrp},</if>
+            <if test="_parameter.containsKey('player_identity')">#{player_identity},</if>
+            <if test="_parameter.containsKey('coach_id')">#{coach_id},</if>
+            <if test="_parameter.containsKey('coach_comment')">#{coach_comment},</if>
+            <if test="_parameter.containsKey('video_analysis_result')">#{video_analysis_result},</if>
+            <if test="_parameter.containsKey('big_data_score')">#{big_data_score},</if>
+            <if test="_parameter.containsKey('submitted_at')">#{submitted_at},</if>
+            <if test="_parameter.containsKey('verified_at')">#{verified_at},</if>
+            <if test="_parameter.containsKey('expired_at')">#{expired_at},</if>
+            <if test="_parameter.containsKey('rejected_reason')">#{rejected_reason},</if>
+            <if test="_parameter.containsKey('created_at')">#{created_at},</if>
+            <if test="_parameter.containsKey('updated_at')">#{updated_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_profile`.`skill_certifications`
+        <set>
+            <if test="_parameter.containsKey('user_id')">`user_id` = #{user_id},</if>
+            <if test="_parameter.containsKey('cert_type')">`cert_type` = #{cert_type},</if>
+            <if test="_parameter.containsKey('cert_status')">`cert_status` = #{cert_status},</if>
+            <if test="_parameter.containsKey('requested_ntrp')">`requested_ntrp` = #{requested_ntrp},</if>
+            <if test="_parameter.containsKey('final_ntrp')">`final_ntrp` = #{final_ntrp},</if>
+            <if test="_parameter.containsKey('player_identity')">`player_identity` = #{player_identity},</if>
+            <if test="_parameter.containsKey('coach_id')">`coach_id` = #{coach_id},</if>
+            <if test="_parameter.containsKey('coach_comment')">`coach_comment` = #{coach_comment},</if>
+            <if test="_parameter.containsKey('video_analysis_result')">`video_analysis_result` = #{video_analysis_result},</if>
+            <if test="_parameter.containsKey('big_data_score')">`big_data_score` = #{big_data_score},</if>
+            <if test="_parameter.containsKey('submitted_at')">`submitted_at` = #{submitted_at},</if>
+            <if test="_parameter.containsKey('verified_at')">`verified_at` = #{verified_at},</if>
+            <if test="_parameter.containsKey('expired_at')">`expired_at` = #{expired_at},</if>
+            <if test="_parameter.containsKey('rejected_reason')">`rejected_reason` = #{rejected_reason},</if>
+            <if test="_parameter.containsKey('created_at')">`created_at` = #{created_at},</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at` = #{updated_at},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_profile`.`skill_certifications`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`skill_certifications`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

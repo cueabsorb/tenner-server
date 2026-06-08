@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.UsersDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_auth`.`users`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('phone')">`phone`,</if>
+            <if test="_parameter.containsKey('email')">`email`,</if>
+            <if test="_parameter.containsKey('password_hash')">`password_hash`,</if>
+            <if test="_parameter.containsKey('display_name')">`display_name`,</if>
+            <if test="_parameter.containsKey('avatar_url')">`avatar_url`,</if>
+            <if test="_parameter.containsKey('bio')">`bio`,</if>
+            <if test="_parameter.containsKey('gender')">`gender`,</if>
+            <if test="_parameter.containsKey('birthday')">`birthday`,</if>
+            <if test="_parameter.containsKey('country')">`country`,</if>
+            <if test="_parameter.containsKey('province')">`province`,</if>
+            <if test="_parameter.containsKey('city')">`city`,</if>
+            <if test="_parameter.containsKey('district')">`district`,</if>
+            <if test="_parameter.containsKey('real_name_visible')">`real_name_visible`,</if>
+            <if test="_parameter.containsKey('locale')">`locale`,</if>
+            <if test="_parameter.containsKey('timezone')">`timezone`,</if>
+            <if test="_parameter.containsKey('onboarding_completed')">`onboarding_completed`,</if>
+            <if test="_parameter.containsKey('onboarding_step')">`onboarding_step`,</if>
+            <if test="_parameter.containsKey('player_identity')">`player_identity`,</if>
+            <if test="_parameter.containsKey('ntrp_rating')">`ntrp_rating`,</if>
+            <if test="_parameter.containsKey('sys_ntrp_rating')">`sys_ntrp_rating`,</if>
+            <if test="_parameter.containsKey('dominant_hand')">`dominant_hand`,</if>
+            <if test="_parameter.containsKey('access_status')">`access_status`,</if>
+            <if test="_parameter.containsKey('created_at')">`created_at`,</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at`,</if>
+            <if test="_parameter.containsKey('deleted_at')">`deleted_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('phone')">#{phone},</if>
+            <if test="_parameter.containsKey('email')">#{email},</if>
+            <if test="_parameter.containsKey('password_hash')">#{password_hash},</if>
+            <if test="_parameter.containsKey('display_name')">#{display_name},</if>
+            <if test="_parameter.containsKey('avatar_url')">#{avatar_url},</if>
+            <if test="_parameter.containsKey('bio')">#{bio},</if>
+            <if test="_parameter.containsKey('gender')">#{gender},</if>
+            <if test="_parameter.containsKey('birthday')">#{birthday},</if>
+            <if test="_parameter.containsKey('country')">#{country},</if>
+            <if test="_parameter.containsKey('province')">#{province},</if>
+            <if test="_parameter.containsKey('city')">#{city},</if>
+            <if test="_parameter.containsKey('district')">#{district},</if>
+            <if test="_parameter.containsKey('real_name_visible')">#{real_name_visible},</if>
+            <if test="_parameter.containsKey('locale')">#{locale},</if>
+            <if test="_parameter.containsKey('timezone')">#{timezone},</if>
+            <if test="_parameter.containsKey('onboarding_completed')">#{onboarding_completed},</if>
+            <if test="_parameter.containsKey('onboarding_step')">#{onboarding_step},</if>
+            <if test="_parameter.containsKey('player_identity')">#{player_identity},</if>
+            <if test="_parameter.containsKey('ntrp_rating')">#{ntrp_rating},</if>
+            <if test="_parameter.containsKey('sys_ntrp_rating')">#{sys_ntrp_rating},</if>
+            <if test="_parameter.containsKey('dominant_hand')">#{dominant_hand},</if>
+            <if test="_parameter.containsKey('access_status')">#{access_status},</if>
+            <if test="_parameter.containsKey('created_at')">#{created_at},</if>
+            <if test="_parameter.containsKey('updated_at')">#{updated_at},</if>
+            <if test="_parameter.containsKey('deleted_at')">#{deleted_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_auth`.`users`
+        <set>
+            <if test="_parameter.containsKey('phone')">`phone` = #{phone},</if>
+            <if test="_parameter.containsKey('email')">`email` = #{email},</if>
+            <if test="_parameter.containsKey('password_hash')">`password_hash` = #{password_hash},</if>
+            <if test="_parameter.containsKey('display_name')">`display_name` = #{display_name},</if>
+            <if test="_parameter.containsKey('avatar_url')">`avatar_url` = #{avatar_url},</if>
+            <if test="_parameter.containsKey('bio')">`bio` = #{bio},</if>
+            <if test="_parameter.containsKey('gender')">`gender` = #{gender},</if>
+            <if test="_parameter.containsKey('birthday')">`birthday` = #{birthday},</if>
+            <if test="_parameter.containsKey('country')">`country` = #{country},</if>
+            <if test="_parameter.containsKey('province')">`province` = #{province},</if>
+            <if test="_parameter.containsKey('city')">`city` = #{city},</if>
+            <if test="_parameter.containsKey('district')">`district` = #{district},</if>
+            <if test="_parameter.containsKey('real_name_visible')">`real_name_visible` = #{real_name_visible},</if>
+            <if test="_parameter.containsKey('locale')">`locale` = #{locale},</if>
+            <if test="_parameter.containsKey('timezone')">`timezone` = #{timezone},</if>
+            <if test="_parameter.containsKey('onboarding_completed')">`onboarding_completed` = #{onboarding_completed},</if>
+            <if test="_parameter.containsKey('onboarding_step')">`onboarding_step` = #{onboarding_step},</if>
+            <if test="_parameter.containsKey('player_identity')">`player_identity` = #{player_identity},</if>
+            <if test="_parameter.containsKey('ntrp_rating')">`ntrp_rating` = #{ntrp_rating},</if>
+            <if test="_parameter.containsKey('sys_ntrp_rating')">`sys_ntrp_rating` = #{sys_ntrp_rating},</if>
+            <if test="_parameter.containsKey('dominant_hand')">`dominant_hand` = #{dominant_hand},</if>
+            <if test="_parameter.containsKey('access_status')">`access_status` = #{access_status},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+            <if test="_parameter.containsKey('created_at')">`created_at` = #{created_at},</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at` = #{updated_at},</if>
+            <if test="_parameter.containsKey('deleted_at')">`deleted_at` = #{deleted_at},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_auth`.`users`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_auth`.`users`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

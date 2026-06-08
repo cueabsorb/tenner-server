@@ -1,0 +1,77 @@
+# 开发环境配置
+spring:
+  # MySQL - 凭证集中管理在 irallyin-variables.yml
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${irallyin.vars.mysql.url}
+    username: ${irallyin.vars.mysql.username}
+    password: ${irallyin.vars.mysql.password}
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  # Redis
+  data:
+    redis:
+      host: ${irallyin.vars.redis.host}
+      port: ${irallyin.vars.redis.port}
+      password: ${irallyin.vars.redis.password}
+      database: ${irallyin.vars.redis.database}
+      timeout: ${irallyin.vars.redis.timeout}
+      jedis:
+        pool:
+          max-active: ${irallyin.vars.redis.max-active}
+          max-idle: ${irallyin.vars.redis.max-idle}
+          min-idle: ${irallyin.vars.redis.min-idle}
+
+    # MongoDB
+    mongodb:
+      uri: ${irallyin.vars.mongodb.uri}
+
+  # Mail - Foxmail SMTP
+  mail:
+    host: ${irallyin.vars.mail.smtp-host}
+    port: ${irallyin.vars.mail.smtp-port}
+    username: ${irallyin.vars.mail.username}
+    password: ${irallyin.vars.mail.password}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+irallyin:
+  mail:
+    imap:
+      host: ${irallyin.vars.mail.imap-host}
+      port: ${irallyin.vars.mail.imap-port}
+      ssl: ${irallyin.vars.mail.imap-ssl}
+
+# JWT
+jwt:
+  secret: ${irallyin.vars.jwt.secret}
+  access-token-expiration: ${irallyin.vars.jwt.access-token-expiration}
+  refresh-token-expiration: ${irallyin.vars.jwt.refresh-token-expiration}
+
+# Google OAuth
+google:
+  oauth:
+    client-id: ${irallyin.vars.google.oauth.client-id}
+    client-secret: ${irallyin.vars.google.oauth.client-secret}
+
+# OSS
+oss:
+  endpoint: ${irallyin.vars.oss.endpoint}
+  access-key-id: ${irallyin.vars.oss.access-key-id}
+  access-key-secret: ${irallyin.vars.oss.access-key-secret}
+  bucket-name: ${irallyin.vars.oss.bucket-name}
+  cdn-domain: ${irallyin.vars.oss.cdn-domain}
+
+logging:
+  level:
+    com.irallyin.server: ${irallyin.vars.logging.application-level}
+    com.baomidou.mybatisplus: ${irallyin.vars.logging.mybatis-plus-level}
+    org.apache.shardingsphere: DEBUG

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.CourtsDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_profile`.`courts`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('country')">`country`,</if>
+            <if test="_parameter.containsKey('city')">`city`,</if>
+            <if test="_parameter.containsKey('area_code')">`area_code`,</if>
+            <if test="_parameter.containsKey('name')">`name`,</if>
+            <if test="_parameter.containsKey('address')">`address`,</if>
+            <if test="_parameter.containsKey('latitude')">`latitude`,</if>
+            <if test="_parameter.containsKey('longitude')">`longitude`,</if>
+            <if test="_parameter.containsKey('surface_type')">`surface_type`,</if>
+            <if test="_parameter.containsKey('indoor_outdoor')">`indoor_outdoor`,</if>
+            <if test="_parameter.containsKey('contact_phone')">`contact_phone`,</if>
+            <if test="_parameter.containsKey('wechat_mini_program_name')">`wechat_mini_program_name`,</if>
+            <if test="_parameter.containsKey('photo_urls')">`photo_urls`,</if>
+            <if test="_parameter.containsKey('description')">`description`,</if>
+            <if test="_parameter.containsKey('created_by')">`created_by`,</if>
+            <if test="_parameter.containsKey('amenities')">`amenities`,</if>
+            <if test="_parameter.containsKey('venue_status')">`venue_status`,</if>
+            <if test="_parameter.containsKey('approval_status')">`approval_status`,</if>
+            <if test="_parameter.containsKey('operator_managed')">`operator_managed`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('country')">#{country},</if>
+            <if test="_parameter.containsKey('city')">#{city},</if>
+            <if test="_parameter.containsKey('area_code')">#{area_code},</if>
+            <if test="_parameter.containsKey('name')">#{name},</if>
+            <if test="_parameter.containsKey('address')">#{address},</if>
+            <if test="_parameter.containsKey('latitude')">#{latitude},</if>
+            <if test="_parameter.containsKey('longitude')">#{longitude},</if>
+            <if test="_parameter.containsKey('surface_type')">#{surface_type},</if>
+            <if test="_parameter.containsKey('indoor_outdoor')">#{indoor_outdoor},</if>
+            <if test="_parameter.containsKey('contact_phone')">#{contact_phone},</if>
+            <if test="_parameter.containsKey('wechat_mini_program_name')">#{wechat_mini_program_name},</if>
+            <if test="_parameter.containsKey('photo_urls')">#{photo_urls},</if>
+            <if test="_parameter.containsKey('description')">#{description},</if>
+            <if test="_parameter.containsKey('created_by')">#{created_by},</if>
+            <if test="_parameter.containsKey('amenities')">#{amenities},</if>
+            <if test="_parameter.containsKey('venue_status')">#{venue_status},</if>
+            <if test="_parameter.containsKey('approval_status')">#{approval_status},</if>
+            <if test="_parameter.containsKey('operator_managed')">#{operator_managed},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_profile`.`courts`
+        <set>
+            <if test="_parameter.containsKey('country')">`country` = #{country},</if>
+            <if test="_parameter.containsKey('city')">`city` = #{city},</if>
+            <if test="_parameter.containsKey('area_code')">`area_code` = #{area_code},</if>
+            <if test="_parameter.containsKey('name')">`name` = #{name},</if>
+            <if test="_parameter.containsKey('address')">`address` = #{address},</if>
+            <if test="_parameter.containsKey('latitude')">`latitude` = #{latitude},</if>
+            <if test="_parameter.containsKey('longitude')">`longitude` = #{longitude},</if>
+            <if test="_parameter.containsKey('surface_type')">`surface_type` = #{surface_type},</if>
+            <if test="_parameter.containsKey('indoor_outdoor')">`indoor_outdoor` = #{indoor_outdoor},</if>
+            <if test="_parameter.containsKey('contact_phone')">`contact_phone` = #{contact_phone},</if>
+            <if test="_parameter.containsKey('wechat_mini_program_name')">`wechat_mini_program_name` = #{wechat_mini_program_name},</if>
+            <if test="_parameter.containsKey('photo_urls')">`photo_urls` = #{photo_urls},</if>
+            <if test="_parameter.containsKey('description')">`description` = #{description},</if>
+            <if test="_parameter.containsKey('created_by')">`created_by` = #{created_by},</if>
+            <if test="_parameter.containsKey('amenities')">`amenities` = #{amenities},</if>
+            <if test="_parameter.containsKey('venue_status')">`venue_status` = #{venue_status},</if>
+            <if test="_parameter.containsKey('approval_status')">`approval_status` = #{approval_status},</if>
+            <if test="_parameter.containsKey('operator_managed')">`operator_managed` = #{operator_managed},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_profile`.`courts`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`courts`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

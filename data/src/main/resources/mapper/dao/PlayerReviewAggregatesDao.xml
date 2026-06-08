@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.PlayerReviewAggregatesDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_review`.`player_review_aggregates`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('user_id')">`user_id`,</if>
+            <if test="_parameter.containsKey('total_review_count')">`total_review_count`,</if>
+            <if test="_parameter.containsKey('overall_score')">`overall_score`,</if>
+            <if test="_parameter.containsKey('skill_avg')">`skill_avg`,</if>
+            <if test="_parameter.containsKey('sportsmanship_avg')">`sportsmanship_avg`,</if>
+            <if test="_parameter.containsKey('reliability_avg')">`reliability_avg`,</if>
+            <if test="_parameter.containsKey('communication_avg')">`communication_avg`,</if>
+            <if test="_parameter.containsKey('top_positive_tags')">`top_positive_tags`,</if>
+            <if test="_parameter.containsKey('trust_confidence')">`trust_confidence`,</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('user_id')">#{user_id},</if>
+            <if test="_parameter.containsKey('total_review_count')">#{total_review_count},</if>
+            <if test="_parameter.containsKey('overall_score')">#{overall_score},</if>
+            <if test="_parameter.containsKey('skill_avg')">#{skill_avg},</if>
+            <if test="_parameter.containsKey('sportsmanship_avg')">#{sportsmanship_avg},</if>
+            <if test="_parameter.containsKey('reliability_avg')">#{reliability_avg},</if>
+            <if test="_parameter.containsKey('communication_avg')">#{communication_avg},</if>
+            <if test="_parameter.containsKey('top_positive_tags')">#{top_positive_tags},</if>
+            <if test="_parameter.containsKey('trust_confidence')">#{trust_confidence},</if>
+            <if test="_parameter.containsKey('updated_at')">#{updated_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_review`.`player_review_aggregates`
+        <set>
+            <if test="_parameter.containsKey('user_id')">`user_id` = #{user_id},</if>
+            <if test="_parameter.containsKey('total_review_count')">`total_review_count` = #{total_review_count},</if>
+            <if test="_parameter.containsKey('overall_score')">`overall_score` = #{overall_score},</if>
+            <if test="_parameter.containsKey('skill_avg')">`skill_avg` = #{skill_avg},</if>
+            <if test="_parameter.containsKey('sportsmanship_avg')">`sportsmanship_avg` = #{sportsmanship_avg},</if>
+            <if test="_parameter.containsKey('reliability_avg')">`reliability_avg` = #{reliability_avg},</if>
+            <if test="_parameter.containsKey('communication_avg')">`communication_avg` = #{communication_avg},</if>
+            <if test="_parameter.containsKey('top_positive_tags')">`top_positive_tags` = #{top_positive_tags},</if>
+            <if test="_parameter.containsKey('trust_confidence')">`trust_confidence` = #{trust_confidence},</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at` = #{updated_at},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_review`.`player_review_aggregates`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_review`.`player_review_aggregates`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

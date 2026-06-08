@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.CitiesDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_profile`.`cities`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('code')">`code`,</if>
+            <if test="_parameter.containsKey('name')">`name`,</if>
+            <if test="_parameter.containsKey('english_name')">`english_name`,</if>
+            <if test="_parameter.containsKey('country_code')">`country_code`,</if>
+            <if test="_parameter.containsKey('latitude')">`latitude`,</if>
+            <if test="_parameter.containsKey('longitude')">`longitude`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('code')">#{code},</if>
+            <if test="_parameter.containsKey('name')">#{name},</if>
+            <if test="_parameter.containsKey('english_name')">#{english_name},</if>
+            <if test="_parameter.containsKey('country_code')">#{country_code},</if>
+            <if test="_parameter.containsKey('latitude')">#{latitude},</if>
+            <if test="_parameter.containsKey('longitude')">#{longitude},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_profile`.`cities`
+        <set>
+            <if test="_parameter.containsKey('name')">`name` = #{name},</if>
+            <if test="_parameter.containsKey('english_name')">`english_name` = #{english_name},</if>
+            <if test="_parameter.containsKey('country_code')">`country_code` = #{country_code},</if>
+            <if test="_parameter.containsKey('latitude')">`latitude` = #{latitude},</if>
+            <if test="_parameter.containsKey('longitude')">`longitude` = #{longitude},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `code` = #{code}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_profile`.`cities`
+        SET `status` = -1
+        WHERE `code` = #{code}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`cities`
+        WHERE `code` = #{code}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

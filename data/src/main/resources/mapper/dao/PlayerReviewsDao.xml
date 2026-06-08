@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.PlayerReviewsDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_review`.`player_reviews`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('play_session_id')">`play_session_id`,</if>
+            <if test="_parameter.containsKey('reviewer_id')">`reviewer_id`,</if>
+            <if test="_parameter.containsKey('reviewee_id')">`reviewee_id`,</if>
+            <if test="_parameter.containsKey('skill_score')">`skill_score`,</if>
+            <if test="_parameter.containsKey('sportsmanship_score')">`sportsmanship_score`,</if>
+            <if test="_parameter.containsKey('reliability_score')">`reliability_score`,</if>
+            <if test="_parameter.containsKey('communication_score')">`communication_score`,</if>
+            <if test="_parameter.containsKey('overall_score')">`overall_score`,</if>
+            <if test="_parameter.containsKey('tags')">`tags`,</if>
+            <if test="_parameter.containsKey('private_note')">`private_note`,</if>
+            <if test="_parameter.containsKey('moderation_status')">`moderation_status`,</if>
+            <if test="_parameter.containsKey('is_verified')">`is_verified`,</if>
+            <if test="_parameter.containsKey('created_at')">`created_at`,</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('play_session_id')">#{play_session_id},</if>
+            <if test="_parameter.containsKey('reviewer_id')">#{reviewer_id},</if>
+            <if test="_parameter.containsKey('reviewee_id')">#{reviewee_id},</if>
+            <if test="_parameter.containsKey('skill_score')">#{skill_score},</if>
+            <if test="_parameter.containsKey('sportsmanship_score')">#{sportsmanship_score},</if>
+            <if test="_parameter.containsKey('reliability_score')">#{reliability_score},</if>
+            <if test="_parameter.containsKey('communication_score')">#{communication_score},</if>
+            <if test="_parameter.containsKey('overall_score')">#{overall_score},</if>
+            <if test="_parameter.containsKey('tags')">#{tags},</if>
+            <if test="_parameter.containsKey('private_note')">#{private_note},</if>
+            <if test="_parameter.containsKey('moderation_status')">#{moderation_status},</if>
+            <if test="_parameter.containsKey('is_verified')">#{is_verified},</if>
+            <if test="_parameter.containsKey('created_at')">#{created_at},</if>
+            <if test="_parameter.containsKey('updated_at')">#{updated_at},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_review`.`player_reviews`
+        <set>
+            <if test="_parameter.containsKey('play_session_id')">`play_session_id` = #{play_session_id},</if>
+            <if test="_parameter.containsKey('reviewer_id')">`reviewer_id` = #{reviewer_id},</if>
+            <if test="_parameter.containsKey('reviewee_id')">`reviewee_id` = #{reviewee_id},</if>
+            <if test="_parameter.containsKey('skill_score')">`skill_score` = #{skill_score},</if>
+            <if test="_parameter.containsKey('sportsmanship_score')">`sportsmanship_score` = #{sportsmanship_score},</if>
+            <if test="_parameter.containsKey('reliability_score')">`reliability_score` = #{reliability_score},</if>
+            <if test="_parameter.containsKey('communication_score')">`communication_score` = #{communication_score},</if>
+            <if test="_parameter.containsKey('overall_score')">`overall_score` = #{overall_score},</if>
+            <if test="_parameter.containsKey('tags')">`tags` = #{tags},</if>
+            <if test="_parameter.containsKey('private_note')">`private_note` = #{private_note},</if>
+            <if test="_parameter.containsKey('moderation_status')">`moderation_status` = #{moderation_status},</if>
+            <if test="_parameter.containsKey('is_verified')">`is_verified` = #{is_verified},</if>
+            <if test="_parameter.containsKey('created_at')">`created_at` = #{created_at},</if>
+            <if test="_parameter.containsKey('updated_at')">`updated_at` = #{updated_at},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_review`.`player_reviews`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_review`.`player_reviews`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

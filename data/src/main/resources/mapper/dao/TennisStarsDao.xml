@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.dao.TennisStarsDao">
+
+    <insert id="insert" parameterType="map">
+        INSERT INTO `ir_profile`.`tennis_stars`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">`id`,</if>
+            <if test="_parameter.containsKey('name')">`name`,</if>
+            <if test="_parameter.containsKey('country')">`country`,</if>
+            <if test="_parameter.containsKey('avatar_url')">`avatar_url`,</if>
+            <if test="_parameter.containsKey('active_status')">`active_status`,</if>
+            <if test="_parameter.containsKey('handedness')">`handedness`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="_parameter.containsKey('id')">#{id},</if>
+            <if test="_parameter.containsKey('name')">#{name},</if>
+            <if test="_parameter.containsKey('country')">#{country},</if>
+            <if test="_parameter.containsKey('avatar_url')">#{avatar_url},</if>
+            <if test="_parameter.containsKey('active_status')">#{active_status},</if>
+            <if test="_parameter.containsKey('handedness')">#{handedness},</if>
+            0
+        </trim>
+    </insert>
+
+    <update id="updateById" parameterType="map">
+        UPDATE `ir_profile`.`tennis_stars`
+        <set>
+            <if test="_parameter.containsKey('name')">`name` = #{name},</if>
+            <if test="_parameter.containsKey('country')">`country` = #{country},</if>
+            <if test="_parameter.containsKey('avatar_url')">`avatar_url` = #{avatar_url},</if>
+            <if test="_parameter.containsKey('active_status')">`active_status` = #{active_status},</if>
+            <if test="_parameter.containsKey('handedness')">`handedness` = #{handedness},</if>
+            <if test="_parameter.containsKey('status')">`status` = #{status},</if>
+        </set>
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="deleteById" parameterType="map">
+        UPDATE `ir_profile`.`tennis_stars`
+        SET `status` = -1
+        WHERE `id` = #{id}
+    </update>
+
+    <select id="findById" parameterType="map" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`tennis_stars`
+        WHERE `id` = #{id}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+</mapper>

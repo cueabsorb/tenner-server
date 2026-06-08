@@ -1,0 +1,88 @@
+# 测试环境配置 - 使用 H2 内存数据库，不启用 ShardingSphere
+spring:
+  # 禁用 ShardingSphere 自动配置
+  autoconfigure:
+    exclude:
+      - org.apache.shardingsphere.spring.boot.ShardingSphereAutoConfiguration
+      - org.apache.shardingsphere.spring.boot.ShardingSphereTransactionAutoConfiguration
+
+  # H2 内存数据库
+  datasource:
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  # SQL init (H2-compatible schema, replaces Flyway for tests)
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+
+  # Flyway disabled for H2 tests
+  flyway:
+    enabled: false
+
+  # Redis mock
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # Mail
+  mail:
+    host: localhost
+    port: 25
+    username: test@test.com
+    password: test
+
+# MyBatis-Plus
+mybatis-plus:
+  mapper-locations: classpath:mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: assign_uuid
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+  configuration:
+    map-underscore-to-camel-case: true
+
+# JWT
+jwt:
+  secret: test-secret-key-at-least-256-bits-long-for-hs256-testing
+  access-token-expiration: 7200000
+  refresh-token-expiration: 604800000
+
+# Google OAuth
+google:
+  oauth:
+    client-id: test-client-id
+    client-secret: test-client-secret
+
+# OSS
+oss:
+  endpoint: https://oss-cn-shanghai.aliyuncs.com
+  access-key-id: test-access-key
+  access-key-secret: test-access-secret
+  bucket-name: test-bucket
+  cdn-domain: https://cdn-test.irallyin.com
+
+# Logging (override vars placeholders from application.yml)
+logging:
+  level:
+    com.irallyin.server: DEBUG
+    org.springframework.security: WARN
+
+# Server (override vars placeholders from application.yml)
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+irallyin:
+  mail:
+    imap:
+      host: localhost
+      port: 993
+      ssl: false

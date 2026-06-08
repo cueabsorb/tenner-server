@@ -1,0 +1,71 @@
+# 生产环境配置
+spring:
+  # ShardingSphere-JDBC 通过 Driver 方式接入
+  datasource:
+    driver-class-name: org.apache.shardingsphere.driver.ShardingSphereDriver
+    url: jdbc:shardingsphere:classpath:shardingsphere-prod.yaml
+
+  # Redis - Tair
+  data:
+    redis:
+      host: ${irallyin.vars.redis.host}
+      port: ${irallyin.vars.redis.port}
+      password: ${irallyin.vars.redis.password}
+      database: ${irallyin.vars.redis.database}
+      timeout: ${irallyin.vars.redis.timeout}
+      jedis:
+        pool:
+          max-active: ${irallyin.vars.redis.max-active}
+          max-idle: ${irallyin.vars.redis.max-idle}
+          min-idle: ${irallyin.vars.redis.min-idle}
+
+    # MongoDB
+    mongodb:
+      uri: ${irallyin.vars.mongodb.uri}
+
+  # Mail - Foxmail SMTP
+  mail:
+    host: ${irallyin.vars.mail.smtp-host}
+    port: ${irallyin.vars.mail.smtp-port}
+    username: ${irallyin.vars.mail.username}
+    password: ${irallyin.vars.mail.password}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+irallyin:
+  mail:
+    imap:
+      host: ${irallyin.vars.mail.imap-host}
+      port: ${irallyin.vars.mail.imap-port}
+      ssl: ${irallyin.vars.mail.imap-ssl}
+
+# JWT
+jwt:
+  secret: ${irallyin.vars.jwt.secret}
+  access-token-expiration: ${irallyin.vars.jwt.access-token-expiration}
+  refresh-token-expiration: ${irallyin.vars.jwt.refresh-token-expiration}
+
+# Google OAuth
+google:
+  oauth:
+    client-id: ${irallyin.vars.google.oauth.client-id}
+    client-secret: ${irallyin.vars.google.oauth.client-secret}
+
+# OSS
+oss:
+  endpoint: ${irallyin.vars.oss.endpoint}
+  access-key-id: ${irallyin.vars.oss.access-key-id}
+  access-key-secret: ${irallyin.vars.oss.access-key-secret}
+  bucket-name: ${irallyin.vars.oss.bucket-name}
+  cdn-domain: ${irallyin.vars.oss.cdn-domain}
+
+logging:
+  level:
+    com.irallyin.server: ${irallyin.vars.logging.application-level}
+    org.springframework.security: ${irallyin.vars.logging.security-level}
+    org.apache.shardingsphere: WARN
