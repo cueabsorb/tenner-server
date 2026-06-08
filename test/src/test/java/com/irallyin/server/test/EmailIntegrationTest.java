@@ -19,15 +19,16 @@ public class EmailIntegrationTest {
     @Test
     public void testSendEmailIfConfigured() throws IOException {
         Properties p = new Properties();
-        // Prefer irallyin-variables.properties but keep backward compatibility with verification.properties
-        InputStream in = getClass().getClassLoader().getResourceAsStream("irallyin-variables.properties");
+        // Prefer IRALLYIN_VARIABLES_FILE but keep backward compatibility with verification.properties
+        String variablesFile = System.getenv().getOrDefault("IRALLYIN_VARIABLES_FILE", "irallyin-variables.properties");
+        InputStream in = getClass().getClassLoader().getResourceAsStream(variablesFile);
         if (in == null) {
             in = getClass().getClassLoader().getResourceAsStream("verification.properties");
         }
         if (in == null) {
             // try project root files
             String wd = System.getProperty("user.dir");
-            java.io.File f1 = new java.io.File(wd, "irallyin-variables.properties");
+            java.io.File f1 = new java.io.File(wd, variablesFile);
             java.io.File f2 = new java.io.File(wd, "verification.properties");
             try {
                 if (f1.exists()) in = new java.io.FileInputStream(f1);
@@ -38,7 +39,7 @@ public class EmailIntegrationTest {
         }
         if (in == null) {
             // skip if no config found
-            Assumptions.assumeTrue(false, "irallyin-variables.properties (or verification.properties) not found on classpath or project root, skipping email integration test");
+            Assumptions.assumeTrue(false, variablesFile + " (or verification.properties) not found on classpath or project root, skipping email integration test");
             return;
         }
         p.load(in);
@@ -65,4 +66,3 @@ public class EmailIntegrationTest {
         assertDoesNotThrow(() -> sender.send(finalTo, subj, body));
     }
 }
-

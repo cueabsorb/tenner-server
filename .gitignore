@@ -18,6 +18,7 @@ Thumbs.db
 # Local config (secrets)
 *-variables-local.yml
 *-variables-local.properties
+yun-irallyin-variables.properties
 
 # Logs
 log/

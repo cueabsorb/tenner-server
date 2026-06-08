@@ -35,19 +35,20 @@ public class EmailSender {
     private final String password;
 
     public EmailSender() throws IOException {
-        // Prefer classpath irallyin-variables.properties, fallback order:
-        // 1) classpath:/irallyin-variables.properties
+        // Prefer the file named by IRALLYIN_VARIABLES_FILE, fallback order:
+        // 1) classpath:/${IRALLYIN_VARIABLES_FILE}
         // 2) classpath:/verification.properties
-        // 3) file at ${user.dir}/irallyin-variables.properties
+        // 3) file at ${user.dir}/${IRALLYIN_VARIABLES_FILE}
         // 4) file at ${user.dir}/verification.properties
-        InputStream in = getClass().getClassLoader().getResourceAsStream("irallyin-variables.properties");
+        String variablesFile = System.getenv().getOrDefault("IRALLYIN_VARIABLES_FILE", "irallyin-variables.properties");
+        InputStream in = getClass().getClassLoader().getResourceAsStream(variablesFile);
         if (in == null) {
             in = getClass().getClassLoader().getResourceAsStream("verification.properties");
         }
         if (in == null) {
             // try project root files
             String wd = System.getProperty("user.dir");
-            File f1 = new File(wd, "irallyin-variables.properties");
+            File f1 = new File(wd, variablesFile);
             File f2 = new File(wd, "verification.properties");
             try {
                 if (f1.exists()) in = new FileInputStream(f1);
@@ -56,7 +57,7 @@ public class EmailSender {
                 // will handle below
             }
         }
-        if (in == null) throw new IOException("irallyin-variables.properties (or verification.properties) not found on classpath or project root");
+        if (in == null) throw new IOException(variablesFile + " (or verification.properties) not found on classpath or project root");
         try (InputStream input = in) {
             props.load(input);
         }
@@ -176,4 +177,3 @@ public class EmailSender {
         return html.replaceAll("\\<[^>]*>", "");
     }
 }
-

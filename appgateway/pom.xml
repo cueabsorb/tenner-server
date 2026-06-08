@@ -6,20 +6,20 @@
 
     <parent>
         <groupId>com.irallyin</groupId>
-        <artifactId>iRallyInServer</artifactId>
+        <artifactId>tenner-server</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>iRallyIn-appgateway</artifactId>
+    <artifactId>tenner-server-appgateway</artifactId>
     <packaging>jar</packaging>
-    <name>iRallyIn AppGateway</name>
+    <name>Tenner Server AppGateway</name>
     <description>APP 访问网关 - 移动端 API 接口</description>
 
     <dependencies>
         <!-- 依赖 core 模块 (传递依赖 data、common) -->
         <dependency>
             <groupId>com.irallyin</groupId>
-            <artifactId>iRallyIn-core</artifactId>
+            <artifactId>tenner-server-core</artifactId>
         </dependency>
 
         <dependency>
@@ -36,6 +36,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <classifier>exec</classifier>
+                    <mainClass>com.irallyin.server.appgateway.IRallyInAppGatewayApplication</mainClass>
                 </configuration>
             </plugin>
         </plugins>

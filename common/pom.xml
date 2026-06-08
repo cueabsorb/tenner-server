@@ -6,13 +6,13 @@
 
     <parent>
         <groupId>com.irallyin</groupId>
-        <artifactId>iRallyInServer</artifactId>
+        <artifactId>tenner-server</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>iRallyIn-common</artifactId>
+    <artifactId>tenner-server-common</artifactId>
     <packaging>jar</packaging>
-    <name>iRallyIn Common</name>
+    <name>Tenner Server Common</name>
     <description>公共基础包 - 统一响应、异常处理、安全认证、通用配置</description>
 
     <dependencies>

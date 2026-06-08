@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: iRallyIn-AppGateway
+    name: tenner-server-appgateway
   profiles:
     active: ${IRALLYIN_PROFILE:dev}
 
@@ -13,6 +13,8 @@ spring:
     import:
       - optional:file:./irallyin-variables.yml
       - optional:file:../irallyin-variables.yml
+      - optional:file:./${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
+      - optional:file:../${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
       - optional:file:./irallyin-variables-local.yml
       - optional:file:../irallyin-variables-local.yml
 
