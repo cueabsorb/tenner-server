@@ -7,6 +7,7 @@
         c.`name`,
         c.`address`,
         c.`country`,
+        c.`province`,
         c.`city`,
         c.`venue_status`,
         c.`approval_status`,
@@ -23,31 +24,69 @@
     </sql>
 
     <select id="findCourts" resultType="map">
-        SELECT
-        <include refid="courtReviewColumns"/>
-        FROM `ir_profile`.`courts` c
-        LEFT JOIN `ir_auth`.`users` u ON u.`id` = c.`created_by`
-        WHERE c.`status` = 0
-        <if test="status != null and status != '' and status != 'all'">
-            <choose>
-                <when test="status == 'voided'">
-                    AND c.`approval_status` IN ('voided', 'rejected')
-                </when>
-                <otherwise>
-                    AND c.`approval_status` = #{status}
-                </otherwise>
-            </choose>
-        </if>
+        SELECT *
+        FROM (
+            SELECT
+            <include refid="courtReviewColumns"/>
+            FROM `ir_profile`.`courts` c
+            LEFT JOIN `ir_auth`.`users` u ON u.`id` = c.`created_by`
+            WHERE c.`status` = 0
+            <if test="status != null and status != '' and status != 'all'">
+                <choose>
+                    <when test="status == 'voided'">
+                        AND c.`approval_status` IN ('voided', 'rejected')
+                    </when>
+                    <otherwise>
+                        AND c.`approval_status` = #{status}
+                    </otherwise>
+                </choose>
+            </if>
+
+            UNION ALL
+
+            SELECT
+                r.`court_id` AS `id`,
+                r.`name`,
+                r.`address`,
+                r.`country`,
+                r.`province`,
+                r.`city`,
+                'pending_review' AS `venue_status`,
+                r.`request_status` AS `approval_status`,
+                r.`wechat_mini_program_name`,
+                r.`photo_urls`,
+                r.`description`,
+                r.`submitted_by` AS `created_by`,
+                r.`reviewed_by`,
+                r.`reviewed_at`,
+                r.`rejected_reason`,
+                u.`email` AS submitter_email,
+                u.`display_name` AS submitter_name,
+                u.`phone` AS submitter_phone
+            FROM `ir_profile`.`court_change_requests` r
+            LEFT JOIN `ir_auth`.`users` u ON u.`id` = r.`submitted_by`
+            WHERE r.`status` = 0
+            <if test="status != null and status != '' and status != 'all'">
+                <choose>
+                    <when test="status == 'voided'">
+                        AND r.`request_status` = 'voided'
+                    </when>
+                    <otherwise>
+                        AND r.`request_status` = #{status}
+                    </otherwise>
+                </choose>
+            </if>
+        ) review_rows
         ORDER BY
-            CASE c.`approval_status`
+            CASE `approval_status`
                 WHEN 'pending' THEN 0
                 WHEN 'approved' THEN 1
                 WHEN 'voided' THEN 2
                 WHEN 'blacklisted' THEN 3
                 ELSE 4
             END,
-            c.`reviewed_at` DESC,
-            c.`name` ASC
+            `reviewed_at` DESC,
+            `name` ASC
     </select>
 
     <select id="findCourtById" resultType="map">
@@ -68,6 +107,57 @@
             `reviewed_at` = CURRENT_TIMESTAMP,
             `rejected_reason` = #{reason}
         WHERE `id` = #{courtId}
+          AND `status` = 0
+    </update>
+
+    <select id="findPendingChangeRequestByCourtId" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`court_change_requests`
+        WHERE `court_id` = #{courtId}
+          AND `request_status` = 'pending'
+          AND `status` = 0
+        ORDER BY `created_at` DESC
+        LIMIT 1
+    </select>
+
+    <update id="applyCourtChangeRequest">
+        UPDATE `ir_profile`.`courts` c
+        JOIN `ir_profile`.`court_change_requests` r
+          ON r.`court_id` = c.`id`
+         AND r.`id` = #{requestId}
+         AND r.`request_status` = 'pending'
+         AND r.`status` = 0
+        SET c.`country` = r.`country`,
+            c.`province` = r.`province`,
+            c.`city` = r.`city`,
+            c.`name` = r.`name`,
+            c.`address` = r.`address`,
+            c.`contact_phone` = r.`contact_phone`,
+            c.`wechat_mini_program_name` = r.`wechat_mini_program_name`,
+            c.`photo_urls` = r.`photo_urls`,
+            c.`description` = r.`description`,
+            c.`latitude` = r.`latitude`,
+            c.`longitude` = r.`longitude`,
+            c.`surface_type` = r.`surface_type`,
+            c.`indoor_outdoor` = r.`indoor_outdoor`,
+            c.`has_indoor` = r.`has_indoor`,
+            c.`has_outdoor` = r.`has_outdoor`,
+            c.`total_court_count` = r.`total_court_count`,
+            c.`opening_time` = r.`opening_time`,
+            c.`closing_time` = r.`closing_time`,
+            c.`approval_status` = 'approved',
+            c.`venue_status` = 'active'
+        WHERE c.`status` = 0
+    </update>
+
+    <update id="updateCourtChangeRequestReviewStatus">
+        UPDATE `ir_profile`.`court_change_requests`
+        SET `request_status` = #{requestStatus},
+            `reviewed_by` = #{reviewedBy},
+            `reviewed_at` = CURRENT_TIMESTAMP,
+            `rejected_reason` = #{reason}
+        WHERE `id` = #{requestId}
+          AND `request_status` = 'pending'
           AND `status` = 0
     </update>
 </mapper>

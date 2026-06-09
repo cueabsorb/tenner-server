@@ -50,10 +50,10 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- API Documentation (Schema annotations) -->
+        <!-- API Documentation (annotations + OpenAPI JSON endpoint only, no Swagger UI) -->
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
         </dependency>
 
         <!-- Redis (Jedis, for nonce cache in request signature verification) -->
@@ -70,12 +70,6 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-        </dependency>
-
-        <!-- Utilities -->
-        <dependency>
-            <groupId>cn.hutool</groupId>
-            <artifactId>hutool-all</artifactId>
         </dependency>
 
         <dependency>

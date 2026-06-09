@@ -13,6 +13,10 @@ public class CourtSubmissionRequest {
     @Size(max = 100, message = "国家不能超过100个字符")
     private String country;
 
+    @NotBlank(message = "省不能为空")
+    @Size(max = 100, message = "省不能超过100个字符")
+    private String province;
+
     @NotBlank(message = "城市不能为空")
     @Size(max = 100, message = "城市不能超过100个字符")
     private String city;

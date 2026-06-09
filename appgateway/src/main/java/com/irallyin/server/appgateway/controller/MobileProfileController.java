@@ -215,6 +215,21 @@ public class MobileProfileController {
         }
     }
 
+    @PostMapping("/courts/{courtId}/change-requests")
+    @Operation(summary = "提交网球场信息修改申请")
+    public ApiResponse<CourtSubmissionResponse> submitCourtChangeRequest(
+            Authentication authentication,
+            @PathVariable String courtId,
+            @Valid @RequestBody CourtSubmissionRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.submitCourtChangeRequest(currentUserId(authentication), courtId, request));
+        } catch (Exception e) {
+            log.error("Failed to submit court change request: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     private String currentUserId(Authentication authentication) {
         return ((UUID) authentication.getPrincipal()).toString();
     }

@@ -8,6 +8,7 @@ import com.irallyin.server.data.domain.CourtDO;
 import com.irallyin.server.data.mapper.MobileProfileMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -220,6 +221,7 @@ public class MobileProfileService {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("id", courtId);
         values.put("country", normalize(request.getCountry()));
+        values.put("province", normalize(request.getProvince()));
         values.put("city", normalize(request.getCity()));
         values.put("name", courtName);
         values.put("address", normalizeNullable(request.getAddress()));
@@ -254,6 +256,46 @@ public class MobileProfileService {
                 .approvalStatus("pending")
                 .venueStatus("pending_review")
                 .message("已提交审核，审核通过后会进入球场库")
+                .build();
+    }
+
+    @Transactional
+    public CourtSubmissionResponse submitCourtChangeRequest(String userId, String courtId, CourtSubmissionRequest request) {
+        requireUser(userId);
+        CourtDO court = mobileProfileMapper.findActiveCourtById(courtId);
+        if (court == null) {
+            throw new BusinessException(10004, "网球场不存在");
+        }
+        if (!"approved".equals(court.getApprovalStatus()) || !"active".equals(court.getVenueStatus())) {
+            throw new BusinessException(10001, "网球场审核通过后才允许申请修改");
+        }
+        if (mobileProfileMapper.countPendingCourtChangeRequest(courtId) > 0) {
+            throw new BusinessException(10001, "该网球场已有修改申请正在审核中");
+        }
+
+        Map<String, Object> values = courtValues(request);
+        values.put("id", UUID.randomUUID().toString());
+        values.put("court_id", courtId);
+        values.put("submitted_by", userId);
+
+        CourtDO sameNameCourt = mobileProfileMapper.findActiveCourtByName((String) values.get("name"));
+        if (sameNameCourt != null && !courtId.equals(sameNameCourt.getId())) {
+            throw new BusinessException(10001, "网球场名称已存在");
+        }
+
+        assertCourtContentSafe(values);
+        try {
+            mobileProfileMapper.insertCourtChangeRequest(values);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(10001, "该网球场已有修改申请正在审核中");
+        }
+        writeEditLog(userId, "court_change_request");
+
+        return CourtSubmissionResponse.builder()
+                .courtId(courtId)
+                .approvalStatus("pending")
+                .venueStatus("pending_review")
+                .message("修改申请已提交，管理员审核通过后会更新球场信息")
                 .build();
     }
 
@@ -369,6 +411,7 @@ public class MobileProfileService {
                 .name((String) rowValue(row, "name"))
                 .address((String) rowValue(row, "address"))
                 .country((String) rowValue(row, "country"))
+                .province((String) rowValue(row, "province"))
                 .city((String) rowValue(row, "city"))
                 .contactPhone((String) rowValue(row, "contact_phone"))
                 .venueStatus((String) rowValue(row, "venue_status"))
@@ -396,6 +439,7 @@ public class MobileProfileService {
                 .name(court.getName())
                 .address(court.getAddress())
                 .country(court.getCountry())
+                .province(court.getProvince())
                 .city(court.getCity())
                 .contactPhone(court.getContactPhone())
                 .venueStatus(court.getVenueStatus())
@@ -415,6 +459,37 @@ public class MobileProfileService {
                 .openingTime(court.getOpeningTime())
                 .closingTime(court.getClosingTime())
                 .build();
+    }
+
+    private Map<String, Object> courtValues(CourtSubmissionRequest request) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("country", normalize(request.getCountry()));
+        values.put("province", normalize(request.getProvince()));
+        values.put("city", normalize(request.getCity()));
+        values.put("name", normalize(request.getName()));
+        values.put("address", normalizeNullable(request.getAddress()));
+        values.put("contact_phone", normalizeNullable(request.getContactPhone()));
+        values.put("wechat_mini_program_name", normalizeNullable(request.getWechatMiniProgramName()));
+        values.put("photo_urls", jsonPhotoUrls(request.getPhotoUrls()));
+        values.put("description", normalizeNullable(request.getDescription()));
+        values.put("latitude", request.getLatitude());
+        values.put("longitude", request.getLongitude());
+        values.put("surface_type", normalizeNullable(request.getSurfaceType()));
+        values.put("has_indoor", request.getHasIndoor());
+        values.put("has_outdoor", request.getHasOutdoor());
+        values.put("indoor_outdoor", indoorOutdoorValue(request.getHasIndoor(), request.getHasOutdoor()));
+        values.put("total_court_count", courtCountValue(request.getTotalCourtCount()));
+        values.put("opening_time", timeValue(request.getOpeningTime(), "营业开始时间"));
+        values.put("closing_time", timeValue(request.getClosingTime(), "营业结束时间"));
+        return values;
+    }
+
+    private void assertCourtContentSafe(Map<String, Object> values) {
+        contentSafetyService.assertSafeText((String) values.get("name"), "球场名字");
+        if (StringUtils.hasText((String) values.get("address"))) {
+            contentSafetyService.assertSafeText((String) values.get("address"), "球场地址");
+        }
+        contentSafetyService.assertSafeText((String) values.get("description"), "球场描述");
     }
 
     private String jsonPhotoUrls(List<String> photoUrls) {

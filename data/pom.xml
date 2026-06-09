@@ -33,7 +33,7 @@
             <version>${mybatis-plus.version}</version>
         </dependency>
 
-        <!-- ShardingSphere-JDBC -->
+        <!-- ShardingSphere-JDBC - only MySQL dialect, exclude unused databases and heavy engines -->
         <dependency>
             <groupId>org.apache.shardingsphere</groupId>
             <artifactId>shardingsphere-jdbc</artifactId>
@@ -41,6 +41,91 @@
                 <exclusion>
                     <groupId>org.apache.shardingsphere</groupId>
                     <artifactId>shardingsphere-test-util</artifactId>
+                </exclusion>
+                <!-- Unused database dialects (only MySQL is used) -->
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-database-oracle</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-database-postgresql</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-database-opengauss</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-database-sqlserver</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-database-clickhouse</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-database-h2</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-database-mariadb</artifactId>
+                </exclusion>
+                <!-- Unused SQL parsers for non-MySQL dialects -->
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-parser-sql-oracle</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-parser-sql-postgresql</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-parser-sql-opengauss</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-parser-sql-sqlserver</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-parser-sql-sql92</artifactId>
+                </exclusion>
+                <!-- SQL Federation engine (calcite) - not needed for passthrough mode -->
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-sql-federation-optimizer</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-sql-federation-executor</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.calcite</groupId>
+                    <artifactId>calcite-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.calcite</groupId>
+                    <artifactId>calcite-linq4j</artifactId>
+                </exclusion>
+                <!-- Groovy expression engine - not needed without sharding rules -->
+                <exclusion>
+                    <groupId>org.apache.groovy</groupId>
+                    <artifactId>groovy</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.groovy</groupId>
+                    <artifactId>groovy-jsr223</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.shardingsphere</groupId>
+                    <artifactId>shardingsphere-infra-expr-groovy</artifactId>
+                </exclusion>
+                <!-- commons-math3 only used by calcite/federation -->
+                <exclusion>
+                    <groupId>org.apache.commons</groupId>
+                    <artifactId>commons-math3</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

@@ -8,6 +8,7 @@ import com.irallyin.server.core.admin.dto.AdminCourtReviewUpdateRequest;
 import com.irallyin.server.data.mapper.AdminCourtReviewMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.sql.Timestamp;
@@ -30,6 +31,7 @@ public class AdminCourtReviewService {
                 .toList();
     }
 
+    @Transactional
     public AdminCourtReviewResponse updateCourtStatus(
             String courtId,
             AdminCourtReviewUpdateRequest request,
@@ -42,6 +44,27 @@ public class AdminCourtReviewService {
             case "voided", "blacklisted" -> "inactive";
             default -> throw new BusinessException(10001, "审核状态不合法");
         };
+
+        Map<String, Object> pendingChangeRequest = adminCourtReviewMapper.findPendingChangeRequestByCourtId(courtId);
+        if (pendingChangeRequest != null) {
+            String requestId = stringValue(pendingChangeRequest, "id");
+            if ("approved".equals(approvalStatus)) {
+                int applied = adminCourtReviewMapper.applyCourtChangeRequest(requestId);
+                if (applied == 0) {
+                    throw new BusinessException(10004, "修改申请不存在");
+                }
+            }
+            int reviewed = adminCourtReviewMapper.updateCourtChangeRequestReviewStatus(
+                    requestId,
+                    approvalStatus,
+                    adminEmail,
+                    request.getReason()
+            );
+            if (reviewed == 0) {
+                throw new BusinessException(10004, "修改申请不存在");
+            }
+            return toResponse(adminCourtReviewMapper.findCourtById(courtId));
+        }
 
         int updated = adminCourtReviewMapper.updateCourtReviewStatus(
                 courtId,
@@ -70,6 +93,7 @@ public class AdminCourtReviewService {
                 .name(stringValue(row, "name"))
                 .address(stringValue(row, "address"))
                 .country(stringValue(row, "country"))
+                .province(stringValue(row, "province"))
                 .city(stringValue(row, "city"))
                 .approvalStatus(approvalStatus)
                 .approvalStatusText(statusText(approvalStatus))

@@ -11,10 +11,21 @@ public interface AdminCourtReviewMapper {
 
     Map<String, Object> findCourtById(@Param("courtId") String courtId);
 
+    Map<String, Object> findPendingChangeRequestByCourtId(@Param("courtId") String courtId);
+
     int updateCourtReviewStatus(
             @Param("courtId") String courtId,
             @Param("approvalStatus") String approvalStatus,
             @Param("venueStatus") String venueStatus,
+            @Param("reviewedBy") String reviewedBy,
+            @Param("reason") String reason
+    );
+
+    int applyCourtChangeRequest(@Param("requestId") String requestId);
+
+    int updateCourtChangeRequestReviewStatus(
+            @Param("requestId") String requestId,
+            @Param("requestStatus") String requestStatus,
             @Param("reviewedBy") String reviewedBy,
             @Param("reason") String reason
     );

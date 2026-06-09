@@ -28,6 +28,12 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Swagger UI (only web module needs the full UI) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        </dependency>
+
         <!-- External servlet container support for WAR deployment. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -85,6 +91,15 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+            <!-- Exclude admin-ui source (including node_modules) from WAR.
+                 Only the Vite build output in WEB-INF/classes/static/admin/ is needed. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <packagingExcludes>admin-ui/**</packagingExcludes>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.springframework.boot</groupId>

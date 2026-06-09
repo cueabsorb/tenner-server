@@ -13,6 +13,7 @@ public class AdminCourtReviewResponse {
     private String name;
     private String address;
     private String country;
+    private String province;
     private String city;
     private String approvalStatus;
     private String approvalStatusText;

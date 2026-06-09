@@ -33,7 +33,6 @@
         <mybatis-plus.version>3.5.9</mybatis-plus.version>
         <springdoc.version>2.6.0</springdoc.version>
         <jjwt.version>0.12.6</jjwt.version>
-        <hutool.version>5.8.34</hutool.version>
         <lombok.version>1.18.38</lombok.version>
         <shardingsphere.version>5.5.0</shardingsphere.version>
     </properties>
@@ -101,16 +100,15 @@
             <!-- ==================== API Documentation ==================== -->
             <dependency>
                 <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+                <version>${springdoc.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc.version}</version>
             </dependency>
 
-            <!-- ==================== Utilities ==================== -->
-            <dependency>
-                <groupId>cn.hutool</groupId>
-                <artifactId>hutool-all</artifactId>
-                <version>${hutool.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

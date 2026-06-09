@@ -101,6 +101,10 @@ public class CourtDO implements Serializable {
      */
     private String country;
     /**
+     * 省/州。
+     */
+    private String province;
+    /**
      * 城市。
      */
     private String city;
