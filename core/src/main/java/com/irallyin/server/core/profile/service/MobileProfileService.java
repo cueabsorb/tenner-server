@@ -368,6 +368,8 @@ public class MobileProfileService {
                 .totalCourtCount(integerValue(rowValue(row, "total_court_count")))
                 .indoorCourtCount(integerValue(rowValue(row, "indoor_court_count")))
                 .outdoorCourtCount(integerValue(rowValue(row, "outdoor_court_count")))
+                .openingTime(localTimeValue(rowValue(row, "opening_time")))
+                .closingTime(localTimeValue(rowValue(row, "closing_time")))
                 .build();
     }
 
@@ -391,6 +393,8 @@ public class MobileProfileService {
                 .totalCourtCount(court.getTotalCourtCount())
                 .indoorCourtCount(court.getIndoorCourtCount())
                 .outdoorCourtCount(court.getOutdoorCourtCount())
+                .openingTime(court.getOpeningTime())
+                .closingTime(court.getClosingTime())
                 .build();
     }
 
@@ -545,6 +549,19 @@ public class MobileProfileService {
     private Integer integerValue(Object value) {
         if (value instanceof Number number) {
             return number.intValue();
+        }
+        return null;
+    }
+
+    private LocalTime localTimeValue(Object value) {
+        if (value instanceof LocalTime localTime) {
+            return localTime;
+        }
+        if (value instanceof java.sql.Time time) {
+            return time.toLocalTime();
+        }
+        if (value instanceof String text && StringUtils.hasText(text)) {
+            return LocalTime.parse(text);
         }
         return null;
     }

@@ -155,6 +155,8 @@
                c.`total_court_count`,
                c.`indoor_court_count`,
                c.`outdoor_court_count`,
+               c.`opening_time`,
+               c.`closing_time`,
                hc.`is_primary`
         FROM `ir_profile`.`playing_habits` ph
         JOIN `ir_profile`.`habit_courts` hc
@@ -184,6 +186,8 @@
                c.`total_court_count`,
                c.`indoor_court_count`,
                c.`outdoor_court_count`,
+               c.`opening_time`,
+               c.`closing_time`,
                c.`contact_phone`,
                c.`amenities`,
                c.`venue_status`,

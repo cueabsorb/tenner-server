@@ -3,6 +3,8 @@ package com.irallyin.server.core.profile.dto;
 import lombok.Builder;
 import lombok.Data;
 
+import java.time.LocalTime;
+
 @Data
 @Builder
 public class HabitCourtResponse {
@@ -24,4 +26,6 @@ public class HabitCourtResponse {
     private Integer totalCourtCount;
     private Integer indoorCourtCount;
     private Integer outdoorCourtCount;
+    private LocalTime openingTime;
+    private LocalTime closingTime;
 }

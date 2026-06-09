@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
  * 球场。
@@ -70,6 +71,14 @@ public class CourtDO implements Serializable {
      * 室外球场片数。
      */
     private Integer outdoorCourtCount;
+    /**
+     * 每日营业开始时间。
+     */
+    private LocalTime openingTime;
+    /**
+     * 每日营业结束时间。
+     */
+    private LocalTime closingTime;
     /**
      * 联系电话。
      */
