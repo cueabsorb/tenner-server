@@ -4,6 +4,8 @@ import com.irallyin.server.data.mapper.GenericStatusMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -36,6 +38,10 @@ public abstract class AbstractStatusDao {
         }
     }
 
+    public int insert(Object dataObject) {
+        return insert(toColumnValues(dataObject));
+    }
+
     public int updateById(Object id, Map<String, Object> values) {
         requireId(id);
         LinkedHashMap<String, Object> updateValues = copyValues(values);
@@ -51,6 +57,10 @@ public abstract class AbstractStatusDao {
             log.error("Failed to update {} by {}={}: {}", tableName, idColumn, id, e.getMessage(), e);
             throw e;
         }
+    }
+
+    public int updateById(Object id, Object dataObject) {
+        return updateById(id, toColumnValues(dataObject));
     }
 
     public int deleteById(Object id) {
@@ -73,6 +83,10 @@ public abstract class AbstractStatusDao {
         }
     }
 
+    public <T> Optional<T> findById(Object id, Class<T> dataObjectType) {
+        return findById(id).map(row -> toDataObject(row, dataObjectType));
+    }
+
     public List<Map<String, Object>> findByColumn(String column, Object value) {
         String validatedColumn = validateSqlName(column);
         try {
@@ -81,6 +95,13 @@ public abstract class AbstractStatusDao {
             log.error("Failed to find {} by {}={}: {}", tableName, validatedColumn, value, e.getMessage(), e);
             throw e;
         }
+    }
+
+    public <T> List<T> findByColumn(String column, Object value, Class<T> dataObjectType) {
+        return findByColumn(column, value)
+                .stream()
+                .map(row -> toDataObject(row, dataObjectType))
+                .toList();
     }
 
     private LinkedHashMap<String, Object> copyValues(Map<String, Object> values) {
@@ -101,6 +122,69 @@ public abstract class AbstractStatusDao {
             entries.add(entry);
         });
         return entries;
+    }
+
+    private LinkedHashMap<String, Object> toColumnValues(Object dataObject) {
+        if (dataObject == null) {
+            throw new IllegalArgumentException("dataObject must not be null");
+        }
+        if (dataObject instanceof Map<?, ?> map) {
+            LinkedHashMap<String, Object> values = new LinkedHashMap<>();
+            map.forEach((column, value) -> values.put(String.valueOf(column), value));
+            return copyValues(values);
+        }
+
+        LinkedHashMap<String, Object> values = new LinkedHashMap<>();
+        for (Field field : dataObject.getClass().getDeclaredFields()) {
+            if (Modifier.isStatic(field.getModifiers())) {
+                continue;
+            }
+            field.setAccessible(true);
+            try {
+                Object value = field.get(dataObject);
+                if (value != null) {
+                    values.put(toSnakeCase(field.getName()), value);
+                }
+            } catch (IllegalAccessException e) {
+                throw new IllegalArgumentException("failed to read dataObject field: " + field.getName(), e);
+            }
+        }
+        return copyValues(values);
+    }
+
+    private <T> T toDataObject(Map<String, Object> row, Class<T> dataObjectType) {
+        try {
+            T dataObject = dataObjectType.getDeclaredConstructor().newInstance();
+            for (Field field : dataObjectType.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers())) {
+                    continue;
+                }
+                Object value = row.get(toSnakeCase(field.getName()));
+                if (value == null) {
+                    value = row.get(field.getName());
+                }
+                if (value != null) {
+                    field.setAccessible(true);
+                    field.set(dataObject, value);
+                }
+            }
+            return dataObject;
+        } catch (ReflectiveOperationException e) {
+            throw new IllegalArgumentException("failed to map row to " + dataObjectType.getName(), e);
+        }
+    }
+
+    private String toSnakeCase(String fieldName) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < fieldName.length(); i++) {
+            char ch = fieldName.charAt(i);
+            if (Character.isUpperCase(ch)) {
+                builder.append('_').append(Character.toLowerCase(ch));
+            } else {
+                builder.append(ch);
+            }
+        }
+        return builder.toString();
     }
 
     private void requireId(Object id) {

@@ -4,10 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.irallyin.server.common.exception.BusinessException;
 import com.irallyin.server.common.security.JwtTokenProvider;
 import com.irallyin.server.core.auth.dto.*;
-import com.irallyin.server.data.entity.LinkedAccountEntity;
-import com.irallyin.server.data.entity.LoginAuditLogEntity;
-import com.irallyin.server.data.entity.RefreshTokenEntity;
-import com.irallyin.server.data.entity.UserEntity;
+import com.irallyin.server.data.domain.LinkedAccountDO;
+import com.irallyin.server.data.domain.LoginAuditLogDO;
+import com.irallyin.server.data.domain.RefreshTokenDO;
+import com.irallyin.server.data.domain.UserDO;
 import com.irallyin.server.data.mapper.LinkedAccountMapper;
 import com.irallyin.server.data.mapper.LoginAuditLogMapper;
 import com.irallyin.server.data.mapper.RefreshTokenMapper;
@@ -58,7 +58,7 @@ public class AuthService {
             );
             GoogleTokenInfoResponse googleUser = googleOAuthClient.verifyIdToken(googleToken.getIdToken());
 
-            UserEntity user = findOrCreateUser(googleUser);
+            UserDO user = findOrCreateUser(googleUser);
             upsertGoogleLinkedAccount(user.getId(), googleUser, googleToken.getScope());
             AuthTokenResponse response = issueTokens(user, request.getDeviceId(), request.getDeviceInfo());
             writeAudit(user.getId(), ipAddress, request.getDeviceInfo(), true);
@@ -77,7 +77,7 @@ public class AuthService {
         }
 
         String tokenHash = sha256(request.getRefreshToken());
-        RefreshTokenEntity stored = findRefreshTokenForSession(tokenHash);
+        RefreshTokenDO stored = findRefreshTokenForSession(tokenHash);
         if (stored == null) {
             throw new BusinessException(10002, "刷新令牌无效或已过期");
         }
@@ -93,15 +93,15 @@ public class AuthService {
             refreshTokenMapper.updateById(stored);
         }
 
-        UserEntity user = findActiveUserById(stored.getUserId());
+        UserDO user = findActiveUserById(stored.getUserId());
         return issueAccessToken(user, request.getRefreshToken());
     }
 
-    private RefreshTokenEntity findRefreshTokenForSession(String tokenHash) {
+    private RefreshTokenDO findRefreshTokenForSession(String tokenHash) {
         LocalDateTime now = LocalDateTime.now();
-        RefreshTokenEntity stored = refreshTokenMapper.selectOne(new LambdaQueryWrapper<RefreshTokenEntity>()
-                .eq(RefreshTokenEntity::getTokenHash, tokenHash)
-                .gt(RefreshTokenEntity::getExpiresAt, now)
+        RefreshTokenDO stored = refreshTokenMapper.selectOne(new LambdaQueryWrapper<RefreshTokenDO>()
+                .eq(RefreshTokenDO::getTokenHash, tokenHash)
+                .gt(RefreshTokenDO::getExpiresAt, now)
                 .last("LIMIT 1"));
         return stored;
     }
@@ -110,28 +110,28 @@ public class AuthService {
         return toUserProfile(findActiveUserById(userId));
     }
 
-    private UserEntity findOrCreateUser(GoogleTokenInfoResponse googleUser) {
-        LinkedAccountEntity linked = linkedAccountMapper.selectOne(new LambdaQueryWrapper<LinkedAccountEntity>()
-                .eq(LinkedAccountEntity::getProvider, GOOGLE_PROVIDER)
-                .eq(LinkedAccountEntity::getProviderUserId, googleUser.getSub()));
+    private UserDO findOrCreateUser(GoogleTokenInfoResponse googleUser) {
+        LinkedAccountDO linked = linkedAccountMapper.selectOne(new LambdaQueryWrapper<LinkedAccountDO>()
+                .eq(LinkedAccountDO::getProvider, GOOGLE_PROVIDER)
+                .eq(LinkedAccountDO::getProviderUserId, googleUser.getSub()));
         if (linked != null) {
-            UserEntity existing = findActiveUserById(linked.getUserId());
+            UserDO existing = findActiveUserById(linked.getUserId());
             updateUserFromGoogle(existing, googleUser);
             return existing;
         }
 
-        UserEntity user = null;
+        UserDO user = null;
         if (Boolean.TRUE.equals(googleUser.getEmailVerified()) && StringUtils.hasText(googleUser.getEmail())) {
-            user = userMapper.selectOne(new LambdaQueryWrapper<UserEntity>()
-                    .eq(UserEntity::getEmail, googleUser.getEmail())
-                    .isNull(UserEntity::getDeletedAt));
+            user = userMapper.selectOne(new LambdaQueryWrapper<UserDO>()
+                    .eq(UserDO::getEmail, googleUser.getEmail())
+                    .isNull(UserDO::getDeletedAt));
         }
         if (user != null) {
             updateUserFromGoogle(user, googleUser);
             return user;
         }
 
-        user = new UserEntity();
+        user = new UserDO();
         user.setId(UUID.randomUUID().toString());
         user.setEmail(Boolean.TRUE.equals(googleUser.getEmailVerified()) ? googleUser.getEmail() : null);
         user.setDisplayName(resolveDisplayName(googleUser));
@@ -148,7 +148,7 @@ public class AuthService {
         return user;
     }
 
-    private void updateUserFromGoogle(UserEntity user, GoogleTokenInfoResponse googleUser) {
+    private void updateUserFromGoogle(UserDO user, GoogleTokenInfoResponse googleUser) {
         boolean changed = false;
         if (Boolean.TRUE.equals(googleUser.getEmailVerified())
                 && StringUtils.hasText(googleUser.getEmail())
@@ -172,11 +172,11 @@ public class AuthService {
 
     private void upsertGoogleLinkedAccount(String userId, GoogleTokenInfoResponse googleUser, String scope) {
         LocalDateTime now = LocalDateTime.now();
-        LinkedAccountEntity linked = linkedAccountMapper.selectOne(new LambdaQueryWrapper<LinkedAccountEntity>()
-                .eq(LinkedAccountEntity::getProvider, GOOGLE_PROVIDER)
-                .eq(LinkedAccountEntity::getProviderUserId, googleUser.getSub()));
+        LinkedAccountDO linked = linkedAccountMapper.selectOne(new LambdaQueryWrapper<LinkedAccountDO>()
+                .eq(LinkedAccountDO::getProvider, GOOGLE_PROVIDER)
+                .eq(LinkedAccountDO::getProviderUserId, googleUser.getSub()));
         if (linked == null) {
-            linked = new LinkedAccountEntity();
+            linked = new LinkedAccountDO();
             linked.setId(UUID.randomUUID().toString());
             linked.setUserId(userId);
             linked.setProvider(GOOGLE_PROVIDER);
@@ -201,12 +201,12 @@ public class AuthService {
         }
     }
 
-    private AuthTokenResponse issueTokens(UserEntity user, String deviceId, String deviceInfo) {
+    private AuthTokenResponse issueTokens(UserDO user, String deviceId, String deviceInfo) {
         UUID userId = UUID.fromString(user.getId());
         String accessToken = jwtTokenProvider.generateAccessToken(userId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
-        RefreshTokenEntity storedRefreshToken = new RefreshTokenEntity();
+        RefreshTokenDO storedRefreshToken = new RefreshTokenDO();
         storedRefreshToken.setId(UUID.randomUUID().toString());
         storedRefreshToken.setUserId(user.getId());
         storedRefreshToken.setTokenHash(sha256(refreshToken));
@@ -228,7 +228,7 @@ public class AuthService {
                 .build();
     }
 
-    private AuthTokenResponse issueAccessToken(UserEntity user, String refreshToken) {
+    private AuthTokenResponse issueAccessToken(UserDO user, String refreshToken) {
         UUID userId = UUID.fromString(user.getId());
         String accessToken = jwtTokenProvider.generateAccessToken(userId);
         return AuthTokenResponse.builder()
@@ -240,17 +240,17 @@ public class AuthService {
                 .build();
     }
 
-    private UserEntity findActiveUserById(String userId) {
-        UserEntity user = userMapper.selectOne(new LambdaQueryWrapper<UserEntity>()
-                .eq(UserEntity::getId, userId)
-                .isNull(UserEntity::getDeletedAt));
+    private UserDO findActiveUserById(String userId) {
+        UserDO user = userMapper.selectOne(new LambdaQueryWrapper<UserDO>()
+                .eq(UserDO::getId, userId)
+                .isNull(UserDO::getDeletedAt));
         if (user == null) {
             throw new BusinessException(10004, "用户不存在");
         }
         return user;
     }
 
-    private UserProfileResponse toUserProfile(UserEntity user) {
+    private UserProfileResponse toUserProfile(UserDO user) {
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -277,7 +277,7 @@ public class AuthService {
     }
 
     private void writeAudit(String userId, String ipAddress, String deviceInfo, boolean success) {
-        LoginAuditLogEntity auditLog = new LoginAuditLogEntity();
+        LoginAuditLogDO auditLog = new LoginAuditLogDO();
         auditLog.setId(UUID.randomUUID().toString());
         auditLog.setUserId(userId);
         auditLog.setProvider(GOOGLE_PROVIDER);

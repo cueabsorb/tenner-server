@@ -398,6 +398,11 @@ CREATE TABLE courts (
     longitude             DECIMAL(9,6)    NULL,
     surface_type          VARCHAR(30)     NULL,
     indoor_outdoor        VARCHAR(20)     NULL,
+    has_indoor            BOOLEAN         NOT NULL DEFAULT FALSE,
+    has_outdoor           BOOLEAN         NOT NULL DEFAULT FALSE,
+    total_court_count     INT             NULL,
+    indoor_court_count    INT             NULL,
+    outdoor_court_count   INT             NULL,
     contact_phone         VARCHAR(20)     NULL,
     wechat_mini_program_name VARCHAR(100) NULL,
     photo_urls            CLOB            NULL,
@@ -411,7 +416,8 @@ CREATE TABLE courts (
     reviewed_at           TIMESTAMP       NULL,
     rejected_reason       VARCHAR(500)    NULL,
     status                TINYINT         NOT NULL DEFAULT 0,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE (name)
 );
 
 -- 23. tennis_stars

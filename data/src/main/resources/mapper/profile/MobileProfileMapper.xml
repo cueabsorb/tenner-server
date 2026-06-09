@@ -159,18 +159,36 @@
         ORDER BY hc.`is_primary` DESC, c.`name`
     </select>
 
-    <select id="searchCourts" resultType="map">
+    <select id="searchCourts" resultType="com.irallyin.server.data.domain.CourtDO">
         SELECT c.`id`,
+               c.`country`,
+               c.`city`,
+               c.`area_code`,
                c.`name`,
                c.`address`,
-               NULL AS `country`,
-               NULL AS `city`,
+               c.`latitude`,
+               c.`longitude`,
+               c.`surface_type`,
+               c.`indoor_outdoor`,
+               c.`has_indoor`,
+               c.`has_outdoor`,
+               c.`total_court_count`,
+               c.`indoor_court_count`,
+               c.`outdoor_court_count`,
                c.`contact_phone`,
+               c.`amenities`,
                c.`venue_status`,
-               NULL AS `approval_status`,
-               0 AS `is_primary`
+               c.`approval_status`,
+               c.`operator_managed`,
+               c.`status`
         FROM `ir_profile`.`courts` c
         WHERE c.`status` = 0
+          <if test="country != null and country != ''">
+              AND (c.`country` = #{country} OR c.`country` IS NULL)
+          </if>
+          <if test="city != null and city != ''">
+              AND (c.`city` = #{city} OR c.`city` IS NULL)
+          </if>
           <if test="keyword != null and keyword != ''">
               AND (c.`name` LIKE CONCAT('%', #{keyword}, '%')
                    OR c.`address` LIKE CONCAT('%', #{keyword}, '%'))
@@ -179,10 +197,18 @@
         LIMIT 20
     </select>
 
-    <select id="findActiveCourtById" resultType="map">
+    <select id="findActiveCourtById" resultType="com.irallyin.server.data.domain.CourtDO">
         SELECT *
         FROM `ir_profile`.`courts`
         WHERE `id` = #{courtId}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <select id="findActiveCourtByName" resultType="com.irallyin.server.data.domain.CourtDO">
+        SELECT *
+        FROM `ir_profile`.`courts`
+        WHERE `name` = #{name}
           AND `status` = 0
         LIMIT 1
     </select>
@@ -198,6 +224,13 @@
             <if test="values.containsKey('address')">`address`,</if>
             <if test="values.containsKey('latitude')">`latitude`,</if>
             <if test="values.containsKey('longitude')">`longitude`,</if>
+            <if test="values.containsKey('surface_type')">`surface_type`,</if>
+            <if test="values.containsKey('indoor_outdoor')">`indoor_outdoor`,</if>
+            <if test="values.containsKey('has_indoor')">`has_indoor`,</if>
+            <if test="values.containsKey('has_outdoor')">`has_outdoor`,</if>
+            <if test="values.containsKey('total_court_count')">`total_court_count`,</if>
+            <if test="values.containsKey('indoor_court_count')">`indoor_court_count`,</if>
+            <if test="values.containsKey('outdoor_court_count')">`outdoor_court_count`,</if>
             <if test="values.containsKey('contact_phone')">`contact_phone`,</if>
             <if test="values.containsKey('wechat_mini_program_name')">`wechat_mini_program_name`,</if>
             <if test="values.containsKey('photo_urls')">`photo_urls`,</if>
@@ -217,6 +250,13 @@
             <if test="values.containsKey('address')">#{values.address},</if>
             <if test="values.containsKey('latitude')">#{values.latitude},</if>
             <if test="values.containsKey('longitude')">#{values.longitude},</if>
+            <if test="values.containsKey('surface_type')">#{values.surface_type},</if>
+            <if test="values.containsKey('indoor_outdoor')">#{values.indoor_outdoor},</if>
+            <if test="values.containsKey('has_indoor')">#{values.has_indoor},</if>
+            <if test="values.containsKey('has_outdoor')">#{values.has_outdoor},</if>
+            <if test="values.containsKey('total_court_count')">#{values.total_court_count},</if>
+            <if test="values.containsKey('indoor_court_count')">#{values.indoor_court_count},</if>
+            <if test="values.containsKey('outdoor_court_count')">#{values.outdoor_court_count},</if>
             <if test="values.containsKey('contact_phone')">#{values.contact_phone},</if>
             <if test="values.containsKey('wechat_mini_program_name')">#{values.wechat_mini_program_name},</if>
             <if test="values.containsKey('photo_urls')">#{values.photo_urls},</if>

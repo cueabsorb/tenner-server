@@ -15,6 +15,11 @@
             <if test="_parameter.containsKey('longitude')">`longitude`,</if>
             <if test="_parameter.containsKey('surface_type')">`surface_type`,</if>
             <if test="_parameter.containsKey('indoor_outdoor')">`indoor_outdoor`,</if>
+            <if test="_parameter.containsKey('has_indoor')">`has_indoor`,</if>
+            <if test="_parameter.containsKey('has_outdoor')">`has_outdoor`,</if>
+            <if test="_parameter.containsKey('total_court_count')">`total_court_count`,</if>
+            <if test="_parameter.containsKey('indoor_court_count')">`indoor_court_count`,</if>
+            <if test="_parameter.containsKey('outdoor_court_count')">`outdoor_court_count`,</if>
             <if test="_parameter.containsKey('contact_phone')">`contact_phone`,</if>
             <if test="_parameter.containsKey('wechat_mini_program_name')">`wechat_mini_program_name`,</if>
             <if test="_parameter.containsKey('photo_urls')">`photo_urls`,</if>
@@ -37,6 +42,11 @@
             <if test="_parameter.containsKey('longitude')">#{longitude},</if>
             <if test="_parameter.containsKey('surface_type')">#{surface_type},</if>
             <if test="_parameter.containsKey('indoor_outdoor')">#{indoor_outdoor},</if>
+            <if test="_parameter.containsKey('has_indoor')">#{has_indoor},</if>
+            <if test="_parameter.containsKey('has_outdoor')">#{has_outdoor},</if>
+            <if test="_parameter.containsKey('total_court_count')">#{total_court_count},</if>
+            <if test="_parameter.containsKey('indoor_court_count')">#{indoor_court_count},</if>
+            <if test="_parameter.containsKey('outdoor_court_count')">#{outdoor_court_count},</if>
             <if test="_parameter.containsKey('contact_phone')">#{contact_phone},</if>
             <if test="_parameter.containsKey('wechat_mini_program_name')">#{wechat_mini_program_name},</if>
             <if test="_parameter.containsKey('photo_urls')">#{photo_urls},</if>
@@ -62,6 +72,11 @@
             <if test="_parameter.containsKey('longitude')">`longitude` = #{longitude},</if>
             <if test="_parameter.containsKey('surface_type')">`surface_type` = #{surface_type},</if>
             <if test="_parameter.containsKey('indoor_outdoor')">`indoor_outdoor` = #{indoor_outdoor},</if>
+            <if test="_parameter.containsKey('has_indoor')">`has_indoor` = #{has_indoor},</if>
+            <if test="_parameter.containsKey('has_outdoor')">`has_outdoor` = #{has_outdoor},</if>
+            <if test="_parameter.containsKey('total_court_count')">`total_court_count` = #{total_court_count},</if>
+            <if test="_parameter.containsKey('indoor_court_count')">`indoor_court_count` = #{indoor_court_count},</if>
+            <if test="_parameter.containsKey('outdoor_court_count')">`outdoor_court_count` = #{outdoor_court_count},</if>
             <if test="_parameter.containsKey('contact_phone')">`contact_phone` = #{contact_phone},</if>
             <if test="_parameter.containsKey('wechat_mini_program_name')">`wechat_mini_program_name` = #{wechat_mini_program_name},</if>
             <if test="_parameter.containsKey('photo_urls')">`photo_urls` = #{photo_urls},</if>

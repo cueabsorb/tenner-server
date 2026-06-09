@@ -8,8 +8,8 @@ import com.irallyin.server.core.auth.dto.EmailSendCodeRequest;
 import com.irallyin.server.core.auth.dto.VerificationCodeResponse;
 import com.irallyin.server.core.auth.service.EmailRegistrationService;
 import com.irallyin.server.core.auth.service.EmailVerificationSender;
-import com.irallyin.server.data.entity.LinkedAccountEntity;
-import com.irallyin.server.data.entity.UserEntity;
+import com.irallyin.server.data.domain.LinkedAccountDO;
+import com.irallyin.server.data.domain.UserDO;
 import com.irallyin.server.data.mapper.LinkedAccountMapper;
 import com.irallyin.server.data.mapper.RefreshTokenMapper;
 import com.irallyin.server.data.mapper.UserMapper;
@@ -109,9 +109,9 @@ class EmailRegistrationServiceTest {
         when(valueOperations.get("verification-code:newuser@example.com:register"))
                 .thenReturn("123456");
         when(linkedAccountMapper.selectOne(any())).thenReturn(null);
-        when(userMapper.insert(any(UserEntity.class))).thenReturn(1);
-        when(linkedAccountMapper.insert(any(LinkedAccountEntity.class))).thenReturn(1);
-        when(refreshTokenMapper.insert(any(com.irallyin.server.data.entity.RefreshTokenEntity.class))).thenReturn(1);
+        when(userMapper.insert(any(UserDO.class))).thenReturn(1);
+        when(linkedAccountMapper.insert(any(LinkedAccountDO.class))).thenReturn(1);
+        when(refreshTokenMapper.insert(any(com.irallyin.server.data.domain.RefreshTokenDO.class))).thenReturn(1);
         when(jwtTokenProvider.generateAccessToken(any(UUID.class))).thenReturn("access-token");
         when(jwtTokenProvider.generateRefreshToken(any(UUID.class))).thenReturn("refresh-token");
 
@@ -128,17 +128,17 @@ class EmailRegistrationServiceTest {
         assertEquals("newuser@example.com", response.getUser().getEmail());
 
         // 验证用户被插入
-        ArgumentCaptor<UserEntity> userCaptor = ArgumentCaptor.forClass(UserEntity.class);
+        ArgumentCaptor<UserDO> userCaptor = ArgumentCaptor.forClass(UserDO.class);
         verify(userMapper).insert(userCaptor.capture());
-        UserEntity createdUser = userCaptor.getValue();
+        UserDO createdUser = userCaptor.getValue();
         assertEquals("newuser@example.com", createdUser.getEmail());
         assertEquals("newuser", createdUser.getDisplayName());
         assertNotNull(createdUser.getId());
 
         // 验证关联账号被插入
-        ArgumentCaptor<LinkedAccountEntity> linkedCaptor = ArgumentCaptor.forClass(LinkedAccountEntity.class);
+        ArgumentCaptor<LinkedAccountDO> linkedCaptor = ArgumentCaptor.forClass(LinkedAccountDO.class);
         verify(linkedAccountMapper).insert(linkedCaptor.capture());
-        LinkedAccountEntity linked = linkedCaptor.getValue();
+        LinkedAccountDO linked = linkedCaptor.getValue();
         assertEquals("email", linked.getProvider());
         assertEquals("newuser@example.com", linked.getProviderEmail());
         assertTrue(linked.getProviderEmailVerified());
@@ -185,7 +185,7 @@ class EmailRegistrationServiceTest {
 
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("verification-code:existing@test.com:register")).thenReturn("123456");
-        when(linkedAccountMapper.selectOne(any())).thenReturn(new LinkedAccountEntity());
+        when(linkedAccountMapper.selectOne(any())).thenReturn(new LinkedAccountDO());
 
         BusinessException ex = assertThrows(BusinessException.class,
                 () -> service.register(request, "127.0.0.1"));
@@ -202,15 +202,15 @@ class EmailRegistrationServiceTest {
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("verification-code:newuser@example.com:register")).thenReturn("123456");
         when(linkedAccountMapper.selectOne(any())).thenReturn(null);
-        when(userMapper.insert(any(UserEntity.class))).thenReturn(1);
-        when(linkedAccountMapper.insert(any(LinkedAccountEntity.class))).thenReturn(1);
-        when(refreshTokenMapper.insert(any(com.irallyin.server.data.entity.RefreshTokenEntity.class))).thenReturn(1);
+        when(userMapper.insert(any(UserDO.class))).thenReturn(1);
+        when(linkedAccountMapper.insert(any(LinkedAccountDO.class))).thenReturn(1);
+        when(refreshTokenMapper.insert(any(com.irallyin.server.data.domain.RefreshTokenDO.class))).thenReturn(1);
         when(jwtTokenProvider.generateAccessToken(any(UUID.class))).thenReturn("at");
         when(jwtTokenProvider.generateRefreshToken(any(UUID.class))).thenReturn("rt");
 
         AuthTokenResponse response = service.register(request, "127.0.0.1");
 
-        ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
+        ArgumentCaptor<UserDO> captor = ArgumentCaptor.forClass(UserDO.class);
         verify(userMapper).insert(captor.capture());
         assertEquals("newuser@example.com", captor.getValue().getEmail());
     }

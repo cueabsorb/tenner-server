@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.irallyin.server.common.exception.BusinessException;
 import com.irallyin.server.core.profile.dto.*;
+import com.irallyin.server.data.domain.CourtDO;
 import com.irallyin.server.data.mapper.MobileProfileMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -185,7 +186,7 @@ public class MobileProfileService {
     @Transactional
     public List<HabitCourtResponse> addHabitCourt(String userId, HabitCourtAddRequest request) {
         requireUser(userId);
-        Map<String, Object> court = mobileProfileMapper.findActiveCourtById(request.getCourtId());
+        CourtDO court = mobileProfileMapper.findActiveCourtById(request.getCourtId());
         if (court == null) {
             throw new BusinessException(10004, "网球场不存在");
         }
@@ -203,11 +204,16 @@ public class MobileProfileService {
     public CourtSubmissionResponse submitCourt(String userId, CourtSubmissionRequest request) {
         requireUser(userId);
         String courtId = UUID.randomUUID().toString();
+        String courtName = normalize(request.getName());
+        if (mobileProfileMapper.findActiveCourtByName(courtName) != null) {
+            throw new BusinessException(10001, "网球场名称已存在");
+        }
+
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("id", courtId);
         values.put("country", normalize(request.getCountry()));
         values.put("city", normalize(request.getCity()));
-        values.put("name", normalize(request.getName()));
+        values.put("name", courtName);
         values.put("address", normalize(request.getAddress()));
         values.put("contact_phone", normalize(request.getContactPhone()));
         values.put("wechat_mini_program_name", normalize(request.getWechatMiniProgramName()));
@@ -331,9 +337,9 @@ public class MobileProfileService {
     private List<HabitCourtResponse> findHabitCourts(String userId) {
         try {
             return mobileProfileMapper.findHabitCourtsByUserId(userId)
-                    .stream()
-                    .map(this::toHabitCourtResponse)
-                    .toList();
+                .stream()
+                .map(this::toHabitCourtResponse)
+                .toList();
         } catch (RuntimeException e) {
             log.warn("Failed to load habit courts for userId={}, returning empty list", userId, e);
             return List.of();
@@ -351,6 +357,20 @@ public class MobileProfileService {
                 .venueStatus((String) rowValue(row, "venue_status"))
                 .approvalStatus((String) rowValue(row, "approval_status"))
                 .isPrimary(booleanValue(rowValue(row, "is_primary")))
+                .build();
+    }
+
+    private HabitCourtResponse toHabitCourtResponse(CourtDO court) {
+        return HabitCourtResponse.builder()
+                .id(court.getId())
+                .name(court.getName())
+                .address(court.getAddress())
+                .country(court.getCountry())
+                .city(court.getCity())
+                .contactPhone(court.getContactPhone())
+                .venueStatus(court.getVenueStatus())
+                .approvalStatus(court.getApprovalStatus())
+                .isPrimary(false)
                 .build();
     }
 

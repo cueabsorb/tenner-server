@@ -8,9 +8,9 @@ import com.irallyin.server.core.auth.dto.EmailSendCodeRequest;
 import com.irallyin.server.core.auth.dto.EmailRegisterRequest;
 import com.irallyin.server.core.auth.dto.UserProfileResponse;
 import com.irallyin.server.core.auth.dto.VerificationCodeResponse;
-import com.irallyin.server.data.entity.LinkedAccountEntity;
-import com.irallyin.server.data.entity.RefreshTokenEntity;
-import com.irallyin.server.data.entity.UserEntity;
+import com.irallyin.server.data.domain.LinkedAccountDO;
+import com.irallyin.server.data.domain.RefreshTokenDO;
+import com.irallyin.server.data.domain.UserDO;
 import com.irallyin.server.data.mapper.LinkedAccountMapper;
 import com.irallyin.server.data.mapper.RefreshTokenMapper;
 import com.irallyin.server.data.mapper.UserMapper;
@@ -100,14 +100,14 @@ public class EmailRegistrationService {
         stringRedisTemplate.delete(redisKey);
 
         // 2. 已有用户直接登录，不再创建新用户
-        UserEntity existingUser = findExistingUserByEmail(email);
+        UserDO existingUser = findExistingUserByEmail(email);
         if (existingUser != null) {
             touchEmailLinkedAccount(existingUser, email);
             return issueTokens(existingUser, null, null);
         }
 
         // 3. 新邮箱创建用户
-        UserEntity user = new UserEntity();
+        UserDO user = new UserDO();
         user.setId(UUID.randomUUID().toString());
         user.setEmail(email);
         user.setDisplayName(resolveDisplayName(email));
@@ -123,7 +123,7 @@ public class EmailRegistrationService {
         userMapper.insert(user);
 
         // 4. 创建邮箱关联账号
-        LinkedAccountEntity linked = new LinkedAccountEntity();
+        LinkedAccountDO linked = new LinkedAccountDO();
         linked.setId(UUID.randomUUID().toString());
         linked.setUserId(user.getId());
         linked.setProvider(EMAIL_PROVIDER);
@@ -139,35 +139,35 @@ public class EmailRegistrationService {
         return issueTokens(user, null, null);
     }
 
-    private UserEntity findExistingUserByEmail(String email) {
-        LinkedAccountEntity existingLink = linkedAccountMapper.selectOne(
-                new LambdaQueryWrapper<LinkedAccountEntity>()
-                        .eq(LinkedAccountEntity::getProvider, EMAIL_PROVIDER)
-                        .eq(LinkedAccountEntity::getProviderEmail, email));
+    private UserDO findExistingUserByEmail(String email) {
+        LinkedAccountDO existingLink = linkedAccountMapper.selectOne(
+                new LambdaQueryWrapper<LinkedAccountDO>()
+                        .eq(LinkedAccountDO::getProvider, EMAIL_PROVIDER)
+                        .eq(LinkedAccountDO::getProviderEmail, email));
         if (existingLink != null) {
-            UserEntity linkedUser = userMapper.selectById(existingLink.getUserId());
+            UserDO linkedUser = userMapper.selectById(existingLink.getUserId());
             if (linkedUser != null) {
                 return linkedUser;
             }
         }
 
         return userMapper.selectOne(
-                new LambdaQueryWrapper<UserEntity>()
-                        .eq(UserEntity::getEmail, email));
+                new LambdaQueryWrapper<UserDO>()
+                        .eq(UserDO::getEmail, email));
     }
 
-    private void touchEmailLinkedAccount(UserEntity user, String email) {
-        LinkedAccountEntity existingLink = linkedAccountMapper.selectOne(
-                new LambdaQueryWrapper<LinkedAccountEntity>()
-                        .eq(LinkedAccountEntity::getProvider, EMAIL_PROVIDER)
-                        .eq(LinkedAccountEntity::getProviderEmail, email));
+    private void touchEmailLinkedAccount(UserDO user, String email) {
+        LinkedAccountDO existingLink = linkedAccountMapper.selectOne(
+                new LambdaQueryWrapper<LinkedAccountDO>()
+                        .eq(LinkedAccountDO::getProvider, EMAIL_PROVIDER)
+                        .eq(LinkedAccountDO::getProviderEmail, email));
         if (existingLink != null) {
             existingLink.setLastLoginAt(LocalDateTime.now());
             linkedAccountMapper.updateById(existingLink);
             return;
         }
 
-        LinkedAccountEntity linked = new LinkedAccountEntity();
+        LinkedAccountDO linked = new LinkedAccountDO();
         linked.setId(UUID.randomUUID().toString());
         linked.setUserId(user.getId());
         linked.setProvider(EMAIL_PROVIDER);
@@ -184,12 +184,12 @@ public class EmailRegistrationService {
         return email + REGISTER_SCENE;
     }
 
-    private AuthTokenResponse issueTokens(UserEntity user, String deviceId, String deviceInfo) {
+    private AuthTokenResponse issueTokens(UserDO user, String deviceId, String deviceInfo) {
         UUID userId = UUID.fromString(user.getId());
         String accessToken = jwtTokenProvider.generateAccessToken(userId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
-        RefreshTokenEntity storedRefreshToken = new RefreshTokenEntity();
+        RefreshTokenDO storedRefreshToken = new RefreshTokenDO();
         storedRefreshToken.setId(UUID.randomUUID().toString());
         storedRefreshToken.setUserId(user.getId());
         storedRefreshToken.setTokenHash(sha256(refreshToken));
@@ -214,7 +214,7 @@ public class EmailRegistrationService {
         return StringUtils.hasText(localPart) ? localPart : "来嘞用户";
     }
 
-    private UserProfileResponse toUserProfile(UserEntity user) {
+    private UserProfileResponse toUserProfile(UserDO user) {
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())

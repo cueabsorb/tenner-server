@@ -1,5 +1,6 @@
 package com.irallyin.server.data.mapper;
 
+import com.irallyin.server.data.domain.CourtDO;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDateTime;
@@ -33,13 +34,15 @@ public interface MobileProfileMapper {
 
     List<Map<String, Object>> findHabitCourtsByUserId(@Param("userId") String userId);
 
-    List<Map<String, Object>> searchCourts(
+    List<CourtDO> searchCourts(
             @Param("country") String country,
             @Param("city") String city,
             @Param("keyword") String keyword
     );
 
-    Map<String, Object> findActiveCourtById(@Param("courtId") String courtId);
+    CourtDO findActiveCourtById(@Param("courtId") String courtId);
+
+    CourtDO findActiveCourtByName(@Param("name") String name);
 
     int insertCourt(@Param("values") Map<String, Object> values);
 

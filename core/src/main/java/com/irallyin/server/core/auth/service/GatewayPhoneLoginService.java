@@ -5,9 +5,9 @@ import com.irallyin.server.common.security.JwtTokenProvider;
 import com.irallyin.server.core.auth.dto.AuthTokenResponse;
 import com.irallyin.server.core.auth.dto.GatewayPhoneLoginRequest;
 import com.irallyin.server.core.auth.dto.UserProfileResponse;
-import com.irallyin.server.data.entity.LinkedAccountEntity;
-import com.irallyin.server.data.entity.RefreshTokenEntity;
-import com.irallyin.server.data.entity.UserEntity;
+import com.irallyin.server.data.domain.LinkedAccountDO;
+import com.irallyin.server.data.domain.RefreshTokenDO;
+import com.irallyin.server.data.domain.UserDO;
 import com.irallyin.server.data.mapper.LinkedAccountMapper;
 import com.irallyin.server.data.mapper.RefreshTokenMapper;
 import com.irallyin.server.data.mapper.UserMapper;
@@ -46,7 +46,7 @@ public class GatewayPhoneLoginService {
     @Transactional
     public AuthTokenResponse login(GatewayPhoneLoginRequest request) {
         String phone = normalizePhone(phoneNumberProvider.getMobile(request.getAccessToken()));
-        UserEntity user = findUserByPhone(phone);
+        UserDO user = findUserByPhone(phone);
         if (user == null) {
             user = createPhoneUser(phone);
         }
@@ -54,16 +54,16 @@ public class GatewayPhoneLoginService {
         return issueTokens(user, request.getDeviceId(), request.getDeviceInfo());
     }
 
-    private UserEntity findUserByPhone(String phone) {
-        return userMapper.selectOne(new LambdaQueryWrapper<UserEntity>()
-                .eq(UserEntity::getPhone, phone)
-                .eq(UserEntity::getStatus, 0)
+    private UserDO findUserByPhone(String phone) {
+        return userMapper.selectOne(new LambdaQueryWrapper<UserDO>()
+                .eq(UserDO::getPhone, phone)
+                .eq(UserDO::getStatus, 0)
                 .last("LIMIT 1"));
     }
 
-    private UserEntity createPhoneUser(String phone) {
+    private UserDO createPhoneUser(String phone) {
         LocalDateTime now = LocalDateTime.now();
-        UserEntity user = new UserEntity();
+        UserDO user = new UserDO();
         user.setId(UUID.randomUUID().toString());
         user.setPhone(phone);
         user.setDisplayName(maskPhone(phone));
@@ -79,16 +79,16 @@ public class GatewayPhoneLoginService {
         return user;
     }
 
-    private void touchPhoneLinkedAccount(UserEntity user, String phone) {
+    private void touchPhoneLinkedAccount(UserDO user, String phone) {
         LocalDateTime now = LocalDateTime.now();
-        LinkedAccountEntity linked = linkedAccountMapper.selectOne(new LambdaQueryWrapper<LinkedAccountEntity>()
-                .eq(LinkedAccountEntity::getProvider, PHONE_PROVIDER)
-                .eq(LinkedAccountEntity::getProviderUserId, phone)
-                .eq(LinkedAccountEntity::getStatus, 0)
+        LinkedAccountDO linked = linkedAccountMapper.selectOne(new LambdaQueryWrapper<LinkedAccountDO>()
+                .eq(LinkedAccountDO::getProvider, PHONE_PROVIDER)
+                .eq(LinkedAccountDO::getProviderUserId, phone)
+                .eq(LinkedAccountDO::getStatus, 0)
                 .last("LIMIT 1"));
         boolean isNewLink = linked == null;
         if (linked == null) {
-            linked = new LinkedAccountEntity();
+            linked = new LinkedAccountDO();
             linked.setId(UUID.randomUUID().toString());
             linked.setUserId(user.getId());
             linked.setProvider(PHONE_PROVIDER);
@@ -107,12 +107,12 @@ public class GatewayPhoneLoginService {
         }
     }
 
-    private AuthTokenResponse issueTokens(UserEntity user, String deviceId, String deviceInfo) {
+    private AuthTokenResponse issueTokens(UserDO user, String deviceId, String deviceInfo) {
         UUID userId = UUID.fromString(user.getId());
         String accessToken = jwtTokenProvider.generateAccessToken(userId);
         String refreshToken = jwtTokenProvider.generateRefreshToken(userId);
 
-        RefreshTokenEntity storedRefreshToken = new RefreshTokenEntity();
+        RefreshTokenDO storedRefreshToken = new RefreshTokenDO();
         storedRefreshToken.setId(UUID.randomUUID().toString());
         storedRefreshToken.setUserId(user.getId());
         storedRefreshToken.setTokenHash(sha256(refreshToken));
@@ -132,7 +132,7 @@ public class GatewayPhoneLoginService {
                 .build();
     }
 
-    private UserProfileResponse toUserProfile(UserEntity user) {
+    private UserProfileResponse toUserProfile(UserDO user) {
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
