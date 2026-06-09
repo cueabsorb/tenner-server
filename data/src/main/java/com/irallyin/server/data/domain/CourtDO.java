@@ -1,5 +1,6 @@
 package com.irallyin.server.data.domain;
 import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
@@ -119,6 +120,11 @@ public class CourtDO implements Serializable {
      * 提交该球场的用户ID。
      */
     private String createdBy;
+    /**
+     * 提交该球场的用户名称，来自用户表联查。
+     */
+    @TableField(exist = false)
+    private String creatorName;
     /**
      * 平台审核状态。
      */

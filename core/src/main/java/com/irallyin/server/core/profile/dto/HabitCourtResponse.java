@@ -16,6 +16,8 @@ public class HabitCourtResponse {
     private String contactPhone;
     private String venueStatus;
     private String approvalStatus;
+    private String createdBy;
+    private String creatorName;
     private Boolean isPrimary;
     private Double latitude;
     private Double longitude;

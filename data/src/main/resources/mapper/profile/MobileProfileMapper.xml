@@ -157,6 +157,8 @@
                c.`outdoor_court_count`,
                c.`opening_time`,
                c.`closing_time`,
+               c.`created_by`,
+               u.`display_name` AS creator_name,
                hc.`is_primary`
         FROM `ir_profile`.`playing_habits` ph
         JOIN `ir_profile`.`habit_courts` hc
@@ -165,6 +167,9 @@
         JOIN `ir_profile`.`courts` c
           ON c.`id` = hc.`court_id`
          AND c.`status` = 0
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = c.`created_by`
+         AND u.`status` = 0
         WHERE ph.`user_id` = #{userId}
           AND ph.`status` = 0
         ORDER BY hc.`is_primary` DESC, c.`name`
@@ -193,8 +198,13 @@
                c.`venue_status`,
                c.`approval_status`,
                c.`operator_managed`,
+               c.`created_by`,
+               u.`display_name` AS creator_name,
                c.`status`
         FROM `ir_profile`.`courts` c
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = c.`created_by`
+         AND u.`status` = 0
         WHERE c.`status` = 0
           <if test="country != null and country != ''">
               AND (c.`country` = #{country} OR c.`country` IS NULL)
