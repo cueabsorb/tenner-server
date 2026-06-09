@@ -254,6 +254,8 @@
             <if test="values.containsKey('total_court_count')">`total_court_count`,</if>
             <if test="values.containsKey('indoor_court_count')">`indoor_court_count`,</if>
             <if test="values.containsKey('outdoor_court_count')">`outdoor_court_count`,</if>
+            <if test="values.containsKey('opening_time')">`opening_time`,</if>
+            <if test="values.containsKey('closing_time')">`closing_time`,</if>
             <if test="values.containsKey('contact_phone')">`contact_phone`,</if>
             <if test="values.containsKey('wechat_mini_program_name')">`wechat_mini_program_name`,</if>
             <if test="values.containsKey('photo_urls')">`photo_urls`,</if>
@@ -280,6 +282,8 @@
             <if test="values.containsKey('total_court_count')">#{values.total_court_count},</if>
             <if test="values.containsKey('indoor_court_count')">#{values.indoor_court_count},</if>
             <if test="values.containsKey('outdoor_court_count')">#{values.outdoor_court_count},</if>
+            <if test="values.containsKey('opening_time')">#{values.opening_time},</if>
+            <if test="values.containsKey('closing_time')">#{values.closing_time},</if>
             <if test="values.containsKey('contact_phone')">#{values.contact_phone},</if>
             <if test="values.containsKey('wechat_mini_program_name')">#{values.wechat_mini_program_name},</if>
             <if test="values.containsKey('photo_urls')">#{values.photo_urls},</if>

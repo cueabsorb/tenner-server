@@ -38,4 +38,10 @@ public class CourtSubmissionRequest {
 
     private BigDecimal latitude;
     private BigDecimal longitude;
+    private String surfaceType;
+    private Boolean hasIndoor;
+    private Boolean hasOutdoor;
+    private Integer totalCourtCount;
+    private String openingTime;
+    private String closingTime;
 }

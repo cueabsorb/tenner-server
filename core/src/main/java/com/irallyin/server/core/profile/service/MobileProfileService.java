@@ -221,6 +221,13 @@ public class MobileProfileService {
         values.put("description", normalizeNullable(request.getDescription()));
         values.put("latitude", request.getLatitude());
         values.put("longitude", request.getLongitude());
+        values.put("surface_type", normalizeNullable(request.getSurfaceType()));
+        values.put("has_indoor", request.getHasIndoor());
+        values.put("has_outdoor", request.getHasOutdoor());
+        values.put("indoor_outdoor", indoorOutdoorValue(request.getHasIndoor(), request.getHasOutdoor()));
+        values.put("total_court_count", courtCountValue(request.getTotalCourtCount()));
+        values.put("opening_time", timeValue(request.getOpeningTime(), "营业开始时间"));
+        values.put("closing_time", timeValue(request.getClosingTime(), "营业结束时间"));
         values.put("created_by", userId);
         values.put("venue_status", "pending_review");
         values.put("approval_status", "pending");
@@ -566,6 +573,41 @@ public class MobileProfileService {
         }
         if (value instanceof String text && StringUtils.hasText(text)) {
             return LocalTime.parse(text);
+        }
+        return null;
+    }
+
+    private Integer courtCountValue(Integer value) {
+        if (value == null || value <= 0) {
+            return null;
+        }
+        if (value > 10) {
+            throw new BusinessException(10001, "球场片数最多10片");
+        }
+        return value;
+    }
+
+    private LocalTime timeValue(String value, String fieldName) {
+        String normalized = normalizeNullable(value);
+        if (normalized == null) {
+            return null;
+        }
+        try {
+            return LocalTime.parse(normalized);
+        } catch (RuntimeException e) {
+            throw new BusinessException(10001, fieldName + "格式不正确");
+        }
+    }
+
+    private String indoorOutdoorValue(Boolean hasIndoor, Boolean hasOutdoor) {
+        if (Boolean.TRUE.equals(hasIndoor) && Boolean.TRUE.equals(hasOutdoor)) {
+            return "both";
+        }
+        if (Boolean.TRUE.equals(hasIndoor)) {
+            return "indoor";
+        }
+        if (Boolean.TRUE.equals(hasOutdoor)) {
+            return "outdoor";
         }
         return null;
     }
