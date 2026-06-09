@@ -359,6 +359,15 @@ public class MobileProfileService {
                 .venueStatus((String) rowValue(row, "venue_status"))
                 .approvalStatus((String) rowValue(row, "approval_status"))
                 .isPrimary(booleanValue(rowValue(row, "is_primary")))
+                .latitude(numberAsDouble(rowValue(row, "latitude"), null))
+                .longitude(numberAsDouble(rowValue(row, "longitude"), null))
+                .surfaceType((String) rowValue(row, "surface_type"))
+                .indoorOutdoor((String) rowValue(row, "indoor_outdoor"))
+                .hasIndoor(booleanValue(rowValue(row, "has_indoor")))
+                .hasOutdoor(booleanValue(rowValue(row, "has_outdoor")))
+                .totalCourtCount(integerValue(rowValue(row, "total_court_count")))
+                .indoorCourtCount(integerValue(rowValue(row, "indoor_court_count")))
+                .outdoorCourtCount(integerValue(rowValue(row, "outdoor_court_count")))
                 .build();
     }
 
@@ -373,6 +382,15 @@ public class MobileProfileService {
                 .venueStatus(court.getVenueStatus())
                 .approvalStatus(court.getApprovalStatus())
                 .isPrimary(false)
+                .latitude(court.getLatitude())
+                .longitude(court.getLongitude())
+                .surfaceType(court.getSurfaceType())
+                .indoorOutdoor(court.getIndoorOutdoor())
+                .hasIndoor(court.getHasIndoor())
+                .hasOutdoor(court.getHasOutdoor())
+                .totalCourtCount(court.getTotalCourtCount())
+                .indoorCourtCount(court.getIndoorCourtCount())
+                .outdoorCourtCount(court.getOutdoorCourtCount())
                 .build();
     }
 
@@ -520,6 +538,13 @@ public class MobileProfileService {
         Object source = value != null ? value : fallback;
         if (source instanceof Number number) {
             return number.doubleValue();
+        }
+        return null;
+    }
+
+    private Integer integerValue(Object value) {
+        if (value instanceof Number number) {
+            return number.intValue();
         }
         return null;
     }

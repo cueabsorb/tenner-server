@@ -15,4 +15,13 @@ public class HabitCourtResponse {
     private String venueStatus;
     private String approvalStatus;
     private Boolean isPrimary;
+    private Double latitude;
+    private Double longitude;
+    private String surfaceType;
+    private String indoorOutdoor;
+    private Boolean hasIndoor;
+    private Boolean hasOutdoor;
+    private Integer totalCourtCount;
+    private Integer indoorCourtCount;
+    private Integer outdoorCourtCount;
 }

@@ -146,6 +146,15 @@
                c.`contact_phone`,
                c.`venue_status`,
                NULL AS `approval_status`,
+               c.`latitude`,
+               c.`longitude`,
+               c.`surface_type`,
+               c.`indoor_outdoor`,
+               c.`has_indoor`,
+               c.`has_outdoor`,
+               c.`total_court_count`,
+               c.`indoor_court_count`,
+               c.`outdoor_court_count`,
                hc.`is_primary`
         FROM `ir_profile`.`playing_habits` ph
         JOIN `ir_profile`.`habit_courts` hc
