@@ -19,6 +19,7 @@ Thumbs.db
 *-variables-local.yml
 *-variables-local.properties
 yun-irallyin-variables.properties
+aliyun-irallyin-variables.properties
 
 # Logs
 log/

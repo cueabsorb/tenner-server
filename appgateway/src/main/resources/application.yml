@@ -11,14 +11,17 @@ spring:
 
   config:
     import:
-      - optional:classpath:${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
-      - optional:classpath:irallyin-variables.yml
+      - optional:classpath:aliyun-irallyin-variables.properties
+      - optional:classpath:irallyin-variables.properties
       - optional:file:./irallyin-variables.yml
       - optional:file:../irallyin-variables.yml
       - optional:file:./${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
       - optional:file:../${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
       - optional:file:./irallyin-variables-local.yml
       - optional:file:../irallyin-variables-local.yml
+      - optional:file:${user.home}/tenner-server/aliyun-irallyin-variables.properties
+      - optional:file:${user.home}/tenner-server/irallyin-variables.yml
+      - optional:file:${user.home}/tenner-server/${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
 
   jackson:
     date-format: yyyy-MM-dd'T'HH:mm:ss'Z'
