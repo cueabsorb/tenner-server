@@ -13,6 +13,10 @@ public interface AdminCourtReviewMapper {
 
     Map<String, Object> findPendingChangeRequestByCourtId(@Param("courtId") String courtId);
 
+    int updatePendingCourtDraft(@Param("courtId") String courtId, @Param("values") Map<String, Object> values);
+
+    int updatePendingChangeRequestDraft(@Param("requestId") String requestId, @Param("values") Map<String, Object> values);
+
     int updateCourtReviewStatus(
             @Param("courtId") String courtId,
             @Param("approvalStatus") String approvalStatus,
@@ -29,4 +33,8 @@ public interface AdminCourtReviewMapper {
             @Param("reviewedBy") String reviewedBy,
             @Param("reason") String reason
     );
+
+    int deletePendingCourt(@Param("courtId") String courtId, @Param("reviewedBy") String reviewedBy, @Param("reason") String reason);
+
+    int deletePendingChangeRequest(@Param("requestId") String requestId, @Param("reviewedBy") String reviewedBy, @Param("reason") String reason);
 }

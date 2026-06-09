@@ -9,6 +9,16 @@
         c.`country`,
         c.`province`,
         c.`city`,
+        c.`contact_phone`,
+        c.`latitude`,
+        c.`longitude`,
+        c.`surface_type`,
+        c.`indoor_outdoor`,
+        c.`has_indoor`,
+        c.`has_outdoor`,
+        c.`total_court_count`,
+        c.`opening_time`,
+        c.`closing_time`,
         c.`venue_status`,
         c.`approval_status`,
         c.`wechat_mini_program_name`,
@@ -51,6 +61,16 @@
                 r.`country`,
                 r.`province`,
                 r.`city`,
+                r.`contact_phone`,
+                r.`latitude`,
+                r.`longitude`,
+                r.`surface_type`,
+                r.`indoor_outdoor`,
+                r.`has_indoor`,
+                r.`has_outdoor`,
+                r.`total_court_count`,
+                r.`opening_time`,
+                r.`closing_time`,
                 'pending_review' AS `venue_status`,
                 r.`request_status` AS `approval_status`,
                 r.`wechat_mini_program_name`,
@@ -110,6 +130,33 @@
           AND `status` = 0
     </update>
 
+    <update id="updatePendingCourtDraft">
+        UPDATE `ir_profile`.`courts`
+        <set>
+            <if test="values.containsKey('country')">`country` = #{values.country},</if>
+            <if test="values.containsKey('province')">`province` = #{values.province},</if>
+            <if test="values.containsKey('city')">`city` = #{values.city},</if>
+            <if test="values.containsKey('name')">`name` = #{values.name},</if>
+            <if test="values.containsKey('address')">`address` = #{values.address},</if>
+            <if test="values.containsKey('contact_phone')">`contact_phone` = #{values.contact_phone},</if>
+            <if test="values.containsKey('wechat_mini_program_name')">`wechat_mini_program_name` = #{values.wechat_mini_program_name},</if>
+            <if test="values.containsKey('photo_urls')">`photo_urls` = #{values.photo_urls},</if>
+            <if test="values.containsKey('description')">`description` = #{values.description},</if>
+            <if test="values.containsKey('latitude')">`latitude` = #{values.latitude},</if>
+            <if test="values.containsKey('longitude')">`longitude` = #{values.longitude},</if>
+            <if test="values.containsKey('surface_type')">`surface_type` = #{values.surface_type},</if>
+            <if test="values.containsKey('indoor_outdoor')">`indoor_outdoor` = #{values.indoor_outdoor},</if>
+            <if test="values.containsKey('has_indoor')">`has_indoor` = #{values.has_indoor},</if>
+            <if test="values.containsKey('has_outdoor')">`has_outdoor` = #{values.has_outdoor},</if>
+            <if test="values.containsKey('total_court_count')">`total_court_count` = #{values.total_court_count},</if>
+            <if test="values.containsKey('opening_time')">`opening_time` = #{values.opening_time},</if>
+            <if test="values.containsKey('closing_time')">`closing_time` = #{values.closing_time},</if>
+        </set>
+        WHERE `id` = #{courtId}
+          AND `approval_status` = 'pending'
+          AND `status` = 0
+    </update>
+
     <select id="findPendingChangeRequestByCourtId" resultType="map">
         SELECT *
         FROM `ir_profile`.`court_change_requests`
@@ -150,9 +197,61 @@
         WHERE c.`status` = 0
     </update>
 
+    <update id="updatePendingChangeRequestDraft">
+        UPDATE `ir_profile`.`court_change_requests`
+        <set>
+            <if test="values.containsKey('country')">`country` = #{values.country},</if>
+            <if test="values.containsKey('province')">`province` = #{values.province},</if>
+            <if test="values.containsKey('city')">`city` = #{values.city},</if>
+            <if test="values.containsKey('name')">`name` = #{values.name},</if>
+            <if test="values.containsKey('address')">`address` = #{values.address},</if>
+            <if test="values.containsKey('contact_phone')">`contact_phone` = #{values.contact_phone},</if>
+            <if test="values.containsKey('wechat_mini_program_name')">`wechat_mini_program_name` = #{values.wechat_mini_program_name},</if>
+            <if test="values.containsKey('photo_urls')">`photo_urls` = #{values.photo_urls},</if>
+            <if test="values.containsKey('description')">`description` = #{values.description},</if>
+            <if test="values.containsKey('latitude')">`latitude` = #{values.latitude},</if>
+            <if test="values.containsKey('longitude')">`longitude` = #{values.longitude},</if>
+            <if test="values.containsKey('surface_type')">`surface_type` = #{values.surface_type},</if>
+            <if test="values.containsKey('indoor_outdoor')">`indoor_outdoor` = #{values.indoor_outdoor},</if>
+            <if test="values.containsKey('has_indoor')">`has_indoor` = #{values.has_indoor},</if>
+            <if test="values.containsKey('has_outdoor')">`has_outdoor` = #{values.has_outdoor},</if>
+            <if test="values.containsKey('total_court_count')">`total_court_count` = #{values.total_court_count},</if>
+            <if test="values.containsKey('opening_time')">`opening_time` = #{values.opening_time},</if>
+            <if test="values.containsKey('closing_time')">`closing_time` = #{values.closing_time},</if>
+        </set>
+        WHERE `id` = #{requestId}
+          AND `request_status` = 'pending'
+          AND `status` = 0
+    </update>
+
     <update id="updateCourtChangeRequestReviewStatus">
         UPDATE `ir_profile`.`court_change_requests`
         SET `request_status` = #{requestStatus},
+            `reviewed_by` = #{reviewedBy},
+            `reviewed_at` = CURRENT_TIMESTAMP,
+            `rejected_reason` = #{reason}
+        WHERE `id` = #{requestId}
+          AND `request_status` = 'pending'
+          AND `status` = 0
+    </update>
+
+    <update id="deletePendingCourt">
+        UPDATE `ir_profile`.`courts`
+        SET `status` = -1,
+            `approval_status` = 'voided',
+            `venue_status` = 'inactive',
+            `reviewed_by` = #{reviewedBy},
+            `reviewed_at` = CURRENT_TIMESTAMP,
+            `rejected_reason` = #{reason}
+        WHERE `id` = #{courtId}
+          AND `approval_status` = 'pending'
+          AND `status` = 0
+    </update>
+
+    <update id="deletePendingChangeRequest">
+        UPDATE `ir_profile`.`court_change_requests`
+        SET `status` = -1,
+            `request_status` = 'voided',
             `reviewed_by` = #{reviewedBy},
             `reviewed_at` = CURRENT_TIMESTAMP,
             `rejected_reason` = #{reason}

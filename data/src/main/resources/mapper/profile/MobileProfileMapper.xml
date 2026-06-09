@@ -223,10 +223,14 @@
     </select>
 
     <select id="findActiveCourtById" resultType="com.irallyin.server.data.domain.CourtDO">
-        SELECT *
-        FROM `ir_profile`.`courts`
-        WHERE `id` = #{courtId}
-          AND `status` = 0
+        SELECT c.*,
+               u.`display_name` AS creator_name
+        FROM `ir_profile`.`courts` c
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = c.`created_by`
+         AND u.`status` = 0
+        WHERE c.`id` = #{courtId}
+          AND c.`status` = 0
         LIMIT 1
     </select>
 
