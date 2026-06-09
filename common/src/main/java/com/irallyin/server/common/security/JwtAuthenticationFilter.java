@@ -60,7 +60,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter implements Ord
     }
 
     private boolean isPublicPath(String path) {
-        return path.startsWith("/api/auth/")
+        return !StringUtils.hasText(path)
+                || "/".equals(path)
+                || "/error".equals(path)
+                || path.startsWith("/api/auth/")
                 || path.startsWith("/auth/")
                 || path.startsWith("/api/mobile/auth/")
                 || path.startsWith("/mobile/auth/")

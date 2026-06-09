@@ -62,6 +62,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 公开端点
                         .requestMatchers(
+                                "/",
+                                "/error",
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
