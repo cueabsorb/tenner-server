@@ -77,9 +77,20 @@ public class SecurityConfig {
                                 "/auth/verification-code/verify",
                                 "/auth/verify-email",
                                 "/auth/reset-password",
+                                "/api/auth/login/**",
+                                "/api/auth/register/**",
+                                "/api/auth/login/google",
+                                "/api/auth/refresh",
+                                "/api/auth/verification-code",
+                                "/api/auth/verification-code/verify",
+                                "/api/auth/verify-email",
+                                "/api/auth/reset-password",
                                 "/mobile/auth/verification-code",
                                 "/mobile/auth/register",
-                                "/mobile/auth/phone/gateway-login"
+                                "/mobile/auth/phone/gateway-login",
+                                "/api/mobile/auth/verification-code",
+                                "/api/mobile/auth/register",
+                                "/api/mobile/auth/phone/gateway-login"
                         ).permitAll()
                         // 其余需要认证
                         .anyRequest().authenticated()
