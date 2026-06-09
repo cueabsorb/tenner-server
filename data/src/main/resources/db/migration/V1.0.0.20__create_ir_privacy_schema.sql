@@ -9,7 +9,7 @@ USE `ir_privacy`;
 -- -----------------------------------------------------------
 -- 1. privacy_settings - 隐私设置 (每用户每类别一行)
 -- -----------------------------------------------------------
-CREATE TABLE `privacy_settings` (
+CREATE TABLE IF NOT EXISTS `privacy_settings` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `user_id`               CHAR(36)        NOT NULL COMMENT '关联ir_auth.users.id',
     `category`              ENUM('profile','location','schedule','skill','equipment','matchRequest','search') NOT NULL COMMENT '隐私类别',
@@ -22,7 +22,7 @@ CREATE TABLE `privacy_settings` (
 -- -----------------------------------------------------------
 -- 2. resource_privacy - 资源级可见性覆盖
 -- -----------------------------------------------------------
-CREATE TABLE `resource_privacy` (
+CREATE TABLE IF NOT EXISTS `resource_privacy` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `owner_id`              CHAR(36)        NOT NULL COMMENT '资源所有者ID',
     `resource_type`         VARCHAR(30)     NOT NULL COMMENT '资源类型如feed_post/play_session',
@@ -39,7 +39,7 @@ CREATE TABLE `resource_privacy` (
 -- -----------------------------------------------------------
 -- 3. block_relations - 拉黑关系
 -- -----------------------------------------------------------
-CREATE TABLE `block_relations` (
+CREATE TABLE IF NOT EXISTS `block_relations` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `blocker_id`            CHAR(36)        NOT NULL COMMENT '拉黑者ID',
     `blocked_user_id`       CHAR(36)        NOT NULL COMMENT '被拉黑者ID',
@@ -54,7 +54,7 @@ CREATE TABLE `block_relations` (
 -- -----------------------------------------------------------
 -- 4. user_reports - 用户举报 (追加型)
 -- -----------------------------------------------------------
-CREATE TABLE `user_reports` (
+CREATE TABLE IF NOT EXISTS `user_reports` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `reporter_id`           CHAR(36)        NOT NULL COMMENT '举报人ID',
     `reported_user_id`      CHAR(36)        NOT NULL COMMENT '被举报人ID',
@@ -77,7 +77,7 @@ CREATE TABLE `user_reports` (
 -- -----------------------------------------------------------
 -- 5. account_deletion_requests - 账号注销请求
 -- -----------------------------------------------------------
-CREATE TABLE `account_deletion_requests` (
+CREATE TABLE IF NOT EXISTS `account_deletion_requests` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `user_id`               CHAR(36)        NOT NULL COMMENT '申请注销的用户ID',
     `reason`                TEXT            NULL     COMMENT '注销原因',

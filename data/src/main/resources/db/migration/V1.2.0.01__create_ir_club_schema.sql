@@ -10,7 +10,7 @@ USE `ir_club`;
 -- 1. clubs - 俱乐部
 -- name 同城唯一, 每用户最多创建3个
 -- -----------------------------------------------------------
-CREATE TABLE `clubs` (
+CREATE TABLE IF NOT EXISTS `clubs` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `name`                  VARCHAR(50)     NOT NULL COMMENT '俱乐部名称(同城唯一)',
     `english_name`          VARCHAR(50)     NULL     COMMENT '英文名',
@@ -35,7 +35,7 @@ CREATE TABLE `clubs` (
 -- -----------------------------------------------------------
 -- 2. club_members - 俱乐部成员
 -- -----------------------------------------------------------
-CREATE TABLE `club_members` (
+CREATE TABLE IF NOT EXISTS `club_members` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `club_id`               CHAR(36)        NOT NULL COMMENT '关联clubs.id',
     `user_id`               CHAR(36)        NOT NULL COMMENT '关联用户ID',
@@ -53,7 +53,7 @@ CREATE TABLE `club_members` (
 -- -----------------------------------------------------------
 -- 3. club_join_requests - 入会申请
 -- -----------------------------------------------------------
-CREATE TABLE `club_join_requests` (
+CREATE TABLE IF NOT EXISTS `club_join_requests` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `club_id`               CHAR(36)        NOT NULL COMMENT '关联clubs.id',
     `user_id`               CHAR(36)        NOT NULL COMMENT '申请用户ID',
@@ -72,7 +72,7 @@ CREATE TABLE `club_join_requests` (
 -- -----------------------------------------------------------
 -- 4. club_events - 俱乐部活动
 -- -----------------------------------------------------------
-CREATE TABLE `club_events` (
+CREATE TABLE IF NOT EXISTS `club_events` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `club_id`               CHAR(36)        NOT NULL COMMENT '关联clubs.id',
     `organizer_id`          CHAR(36)        NOT NULL COMMENT '组织者ID',

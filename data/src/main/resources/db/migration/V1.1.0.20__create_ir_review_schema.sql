@@ -10,7 +10,7 @@ USE `ir_review`;
 -- 1. player_reviews - 球员评价 (追加型, 软删除)
 -- 防刷: UNIQUE(reviewer_id, play_session_id, reviewee_id)
 -- -----------------------------------------------------------
-CREATE TABLE `player_reviews` (
+CREATE TABLE IF NOT EXISTS `player_reviews` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `play_session_id`       CHAR(36)        NULL     COMMENT '关联运动记录ID(NULL=无共同记录)',
     `reviewer_id`           CHAR(36)        NOT NULL COMMENT '评价者ID',
@@ -38,7 +38,7 @@ CREATE TABLE `player_reviews` (
 -- -----------------------------------------------------------
 -- 2. player_review_aggregates - 评价聚合 (每用户一行, 异步计算)
 -- -----------------------------------------------------------
-CREATE TABLE `player_review_aggregates` (
+CREATE TABLE IF NOT EXISTS `player_review_aggregates` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `user_id`               CHAR(36)        NOT NULL COMMENT '被评价用户ID',
     `total_review_count`    INT             NOT NULL DEFAULT 0 COMMENT '总评价数',
@@ -59,7 +59,7 @@ CREATE TABLE `player_review_aggregates` (
 -- -----------------------------------------------------------
 -- 3. review_risk_logs - 评价风控日志 (追加型)
 -- -----------------------------------------------------------
-CREATE TABLE `review_risk_logs` (
+CREATE TABLE IF NOT EXISTS `review_risk_logs` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `review_id`             CHAR(36)        NOT NULL COMMENT '关联player_reviews.id',
     `risk_type`             VARCHAR(30)     NOT NULL COMMENT '风险类型: extreme_score/high_frequency/mutual_inflation',

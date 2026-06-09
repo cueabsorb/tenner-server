@@ -10,7 +10,7 @@ USE `ir_activity`;
 -- -----------------------------------------------------------
 -- 1. play_sessions - 运动记录 (按季度分区)
 -- -----------------------------------------------------------
-CREATE TABLE `play_sessions` (
+CREATE TABLE IF NOT EXISTS `play_sessions` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `owner_id`              CHAR(36)        NOT NULL COMMENT '记录创建者ID',
     `sport_type`            VARCHAR(20)     NOT NULL DEFAULT 'tennis' COMMENT '运动类型',
@@ -50,7 +50,7 @@ PARTITION BY RANGE (TO_DAYS(`started_at`)) (
 -- -----------------------------------------------------------
 -- 2. play_participants - 运动参与者
 -- -----------------------------------------------------------
-CREATE TABLE `play_participants` (
+CREATE TABLE IF NOT EXISTS `play_participants` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `session_id`            CHAR(36)        NOT NULL COMMENT '关联play_sessions.id',
     `user_id`               CHAR(36)        NULL     COMMENT '参与用户ID(NULL=未注册)',
@@ -71,7 +71,7 @@ CREATE TABLE `play_participants` (
 -- 3. player_relationship_edges - 球友关系边 (有向)
 -- 每对用户两行: A→B 和 B→A
 -- -----------------------------------------------------------
-CREATE TABLE `player_relationship_edges` (
+CREATE TABLE IF NOT EXISTS `player_relationship_edges` (
     `id`                        CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `user_id`                   CHAR(36)        NOT NULL COMMENT '用户ID',
     `peer_user_id`              CHAR(36)        NOT NULL COMMENT '球友ID',

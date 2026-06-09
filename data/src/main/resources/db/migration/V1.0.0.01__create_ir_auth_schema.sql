@@ -9,7 +9,7 @@ USE `ir_auth`;
 -- -----------------------------------------------------------
 -- 1. users - 用户主表
 -- -----------------------------------------------------------
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `phone`                 VARCHAR(20)     NULL     COMMENT 'E.164格式 如+86-13800138000',
     `email`                 VARCHAR(255)    NULL     COMMENT 'RFC 5322',
@@ -42,7 +42,7 @@ CREATE TABLE `users` (
 -- -----------------------------------------------------------
 -- 2. linked_accounts - 第三方账号绑定
 -- -----------------------------------------------------------
-CREATE TABLE `linked_accounts` (
+CREATE TABLE IF NOT EXISTS `linked_accounts` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `user_id`               CHAR(36)        NOT NULL COMMENT '关联用户ID',
     `provider`              ENUM('phone','wechat','alipay','taobao','google','apple','email') NOT NULL COMMENT '认证提供商',
@@ -63,7 +63,7 @@ CREATE TABLE `linked_accounts` (
 -- -----------------------------------------------------------
 -- 3. refresh_tokens - 刷新令牌
 -- -----------------------------------------------------------
-CREATE TABLE `refresh_tokens` (
+CREATE TABLE IF NOT EXISTS `refresh_tokens` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `user_id`               CHAR(36)        NOT NULL COMMENT '关联用户ID',
     `token_hash`            VARCHAR(128)    NOT NULL COMMENT 'SHA-256摘要',
@@ -83,7 +83,7 @@ CREATE TABLE `refresh_tokens` (
 -- -----------------------------------------------------------
 -- 4. verification_codes - 验证码
 -- -----------------------------------------------------------
-CREATE TABLE `verification_codes` (
+CREATE TABLE IF NOT EXISTS `verification_codes` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `target`                VARCHAR(255)    NOT NULL COMMENT '手机号或邮箱地址',
     `code_hash`             VARCHAR(128)    NOT NULL COMMENT '验证码SHA-256摘要',
@@ -102,7 +102,7 @@ CREATE TABLE `verification_codes` (
 -- -----------------------------------------------------------
 -- 5. login_audit_log - 登录审计日志 (按月分区)
 -- -----------------------------------------------------------
-CREATE TABLE `login_audit_log` (
+CREATE TABLE IF NOT EXISTS `login_audit_log` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `user_id`               CHAR(36)        NULL     COMMENT '登录失败时为NULL',
     `provider`              VARCHAR(20)     NOT NULL COMMENT '登录方式',

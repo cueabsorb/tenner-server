@@ -6,9 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -73,8 +71,8 @@ class UsersDaoTest extends AbstractDaoIntegrationTest {
 
         var results = dao.findByEmail(email);
         Assertions.assertFalse(results.isEmpty(), "should find user by email");
-        Assertions.assertEquals(email, results.get(0).get("email"), "email should match");
-        Assertions.assertEquals(id, results.get(0).get("id"), "id should match");
+        Assertions.assertEquals(email, results.get(0).getEmail(), "email should match");
+        Assertions.assertEquals(id, results.get(0).getId(), "id should match");
 
         // 查询不存在的邮箱应返回空列表
         var notFound = dao.findByEmail("nonexistent@example.com");

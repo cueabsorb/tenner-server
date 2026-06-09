@@ -178,19 +178,40 @@ class EmailRegistrationServiceTest {
     }
 
     @Test
-    void register_shouldThrowWhenEmailAlreadyRegistered() {
+    void register_shouldLoginWhenEmailAlreadyRegistered() {
         EmailRegisterRequest request = new EmailRegisterRequest();
         request.setEmail("existing@test.com");
         request.setCode("123456");
 
+        UserDO existingUser = new UserDO();
+        existingUser.setId(UUID.randomUUID().toString());
+        existingUser.setEmail("existing@test.com");
+        existingUser.setDisplayName("existing");
+        existingUser.setOnboardingCompleted(true);
+
+        LinkedAccountDO linkedAccount = new LinkedAccountDO();
+        linkedAccount.setId(UUID.randomUUID().toString());
+        linkedAccount.setUserId(existingUser.getId());
+        linkedAccount.setProvider("email");
+        linkedAccount.setProviderEmail("existing@test.com");
+
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
         when(valueOperations.get("verification-code:existing@test.com:register")).thenReturn("123456");
-        when(linkedAccountMapper.selectOne(any())).thenReturn(new LinkedAccountDO());
+        when(linkedAccountMapper.selectOne(any())).thenReturn(linkedAccount);
+        when(userMapper.selectById(existingUser.getId())).thenReturn(existingUser);
+        when(linkedAccountMapper.updateById(any(LinkedAccountDO.class))).thenReturn(1);
+        when(refreshTokenMapper.insert(any(com.irallyin.server.data.domain.RefreshTokenDO.class))).thenReturn(1);
+        when(jwtTokenProvider.generateAccessToken(any(UUID.class))).thenReturn("access-token");
+        when(jwtTokenProvider.generateRefreshToken(any(UUID.class))).thenReturn("refresh-token");
 
-        BusinessException ex = assertThrows(BusinessException.class,
-                () -> service.register(request, "127.0.0.1"));
-        assertEquals(10030, ex.getCode());
-        assertTrue(ex.getMessage().contains("已注册"));
+        AuthTokenResponse response = service.register(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertEquals("access-token", response.getAccessToken());
+        assertEquals("existing@test.com", response.getUser().getEmail());
+        verify(userMapper, never()).insert(any(UserDO.class));
+        verify(linkedAccountMapper, never()).insert(any(LinkedAccountDO.class));
+        verify(linkedAccountMapper).updateById(linkedAccount);
     }
 
     @Test

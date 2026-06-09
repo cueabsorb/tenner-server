@@ -10,7 +10,7 @@ USE `ir_social`;
 -- -----------------------------------------------------------
 -- 1. feed_posts - 动态帖子 (按季度分区)
 -- -----------------------------------------------------------
-CREATE TABLE `feed_posts` (
+CREATE TABLE IF NOT EXISTS `feed_posts` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `author_id`             CHAR(36)        NOT NULL COMMENT '作者ID',
     `text`                  TEXT            NULL     COMMENT '帖子文字(≤500字)',
@@ -44,7 +44,7 @@ PARTITION BY RANGE (TO_DAYS(`created_at`)) (
 -- -----------------------------------------------------------
 -- 2. feed_comments - 帖子评论 (按季度分区)
 -- -----------------------------------------------------------
-CREATE TABLE `feed_comments` (
+CREATE TABLE IF NOT EXISTS `feed_comments` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `post_id`               CHAR(36)        NOT NULL COMMENT '关联feed_posts.id',
     `author_id`             CHAR(36)        NOT NULL COMMENT '评论者ID',
@@ -71,7 +71,7 @@ PARTITION BY RANGE (TO_DAYS(`created_at`)) (
 -- -----------------------------------------------------------
 -- 3. feed_likes - 点赞 (按季度分区)
 -- -----------------------------------------------------------
-CREATE TABLE `feed_likes` (
+CREATE TABLE IF NOT EXISTS `feed_likes` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `post_id`               CHAR(36)        NOT NULL COMMENT '关联feed_posts.id',
     `user_id`               CHAR(36)        NOT NULL COMMENT '点赞用户ID',
@@ -96,7 +96,7 @@ PARTITION BY RANGE (TO_DAYS(`created_at`)) (
 -- -----------------------------------------------------------
 -- 4. feed_media - 动态媒体
 -- -----------------------------------------------------------
-CREATE TABLE `feed_media` (
+CREATE TABLE IF NOT EXISTS `feed_media` (
     `id`                    CHAR(36)        NOT NULL COMMENT 'UUID v4',
     `post_id`               CHAR(36)        NOT NULL COMMENT '关联feed_posts.id',
     `media_url`             VARCHAR(512)    NOT NULL COMMENT 'OSS URL',

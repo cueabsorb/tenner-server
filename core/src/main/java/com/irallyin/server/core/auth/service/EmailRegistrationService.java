@@ -59,6 +59,7 @@ public class EmailRegistrationService {
     public VerificationCodeResponse sendCode(EmailSendCodeRequest request) {
         String email = request.getEmail().trim().toLowerCase(Locale.ROOT);
         String code = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+        UserDO existingUser = findExistingUserByEmail(email);
 
         try {
             stringRedisTemplate.opsForValue().set(buildRegisterCodeKey(email), code, CODE_TTL);
@@ -68,6 +69,7 @@ public class EmailRegistrationService {
         }
 
         emailVerificationSender.sendCode(email, code);
+        log.info("Registration code sent for email={}, existingUser={}", email, existingUser != null);
 
         return VerificationCodeResponse.builder()
                 .identifier(email)
@@ -181,7 +183,7 @@ public class EmailRegistrationService {
     }
 
     private String buildRegisterCodeKey(String email) {
-        return email + REGISTER_SCENE;
+        return "verification-code:" + email + ":" + REGISTER_SCENE;
     }
 
     private AuthTokenResponse issueTokens(UserDO user, String deviceId, String deviceInfo) {

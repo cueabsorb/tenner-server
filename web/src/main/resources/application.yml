@@ -34,7 +34,7 @@ spring:
 
   # Flyway
   flyway:
-    enabled: true
+    enabled: ${irallyin.vars.flyway.enabled:false}
     locations: classpath:db/migration
     baseline-on-migrate: true
     encoding: UTF-8
