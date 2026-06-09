@@ -33,6 +33,7 @@ type Court = {
 };
 
 const ADMIN_EMAIL = '656619107@qq.com';
+const API_BASE = `${window.location.pathname.split('/admin')[0]}/api/admin`;
 
 const statusTabs: Array<{ value: CourtStatus; label: string; icon: React.ReactNode }> = [
   { value: 'pending', label: '审核中', icon: <CircleDashed size={16} /> },
@@ -95,7 +96,7 @@ function App() {
     setLoading(true);
     setMessage('');
     try {
-      const data = await request<{ token: string }>('/api/admin/auth/login', {
+      const data = await request<{ token: string }>(`${API_BASE}/auth/login`, {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
@@ -112,7 +113,7 @@ function App() {
     setLoading(true);
     setMessage('');
     try {
-      const data = await request<Court[]>(`/api/admin/courts?status=${nextStatus}`);
+      const data = await request<Court[]>(`${API_BASE}/courts?status=${nextStatus}`);
       setCourts(data);
       setSelectedId(data[0]?.id || '');
     } catch (error) {
@@ -132,7 +133,7 @@ function App() {
     setLoading(true);
     setMessage('');
     try {
-      const updated = await request<Court>(`/api/admin/courts/${selectedCourt.id}/review`, {
+      const updated = await request<Court>(`${API_BASE}/courts/${selectedCourt.id}/review`, {
         method: 'PATCH',
         body: JSON.stringify({ approvalStatus: nextStatus, reason })
       });
