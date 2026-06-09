@@ -78,7 +78,8 @@ public class SecurityConfig {
                                 "/auth/verify-email",
                                 "/auth/reset-password",
                                 "/mobile/auth/verification-code",
-                                "/mobile/auth/register"
+                                "/mobile/auth/register",
+                                "/mobile/auth/phone/gateway-login"
                         ).permitAll()
                         // 其余需要认证
                         .anyRequest().authenticated()

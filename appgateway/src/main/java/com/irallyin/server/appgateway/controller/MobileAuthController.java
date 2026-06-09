@@ -4,8 +4,10 @@ import com.irallyin.server.common.response.ApiResponse;
 import com.irallyin.server.core.auth.dto.AuthTokenResponse;
 import com.irallyin.server.core.auth.dto.EmailRegisterRequest;
 import com.irallyin.server.core.auth.dto.EmailSendCodeRequest;
+import com.irallyin.server.core.auth.dto.GatewayPhoneLoginRequest;
 import com.irallyin.server.core.auth.dto.VerificationCodeResponse;
 import com.irallyin.server.core.auth.service.EmailRegistrationService;
+import com.irallyin.server.core.auth.service.GatewayPhoneLoginService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Mobile Auth", description = "移动端邮箱注册认证")
 public class MobileAuthController {
     private final EmailRegistrationService emailRegistrationService;
+    private final GatewayPhoneLoginService gatewayPhoneLoginService;
 
     @PostMapping("/verification-code")
     @Operation(summary = "发送邮箱验证码", description = "向指定邮箱发送6位数字验证码，5分钟有效")
@@ -41,6 +44,13 @@ public class MobileAuthController {
             log.error("Email registration failed: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    @PostMapping("/phone/gateway-login")
+    @Operation(summary = "本机号码一键登录", description = "App提交运营商网关Token，服务端换取真实手机号后直接登录")
+    public ApiResponse<AuthTokenResponse> gatewayPhoneLogin(
+            @Valid @RequestBody GatewayPhoneLoginRequest request) {
+        return ApiResponse.success(gatewayPhoneLoginService.login(request));
     }
 
     private String resolveClientIp(HttpServletRequest request) {

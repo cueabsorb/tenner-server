@@ -218,6 +218,7 @@ public class EmailRegistrationService {
         return UserProfileResponse.builder()
                 .id(user.getId())
                 .email(user.getEmail())
+                .phone(user.getPhone())
                 .displayName(user.getDisplayName())
                 .avatarUrl(user.getAvatarUrl())
                 .onboardingCompleted(Boolean.TRUE.equals(user.getOnboardingCompleted()))

@@ -11,7 +11,7 @@
     </parent>
 
     <artifactId>tenner-server-appgateway</artifactId>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <name>Tenner Server AppGateway</name>
     <description>APP 访问网关 - 移动端 API 接口</description>
 
@@ -22,6 +22,18 @@
             <artifactId>tenner-server-core</artifactId>
         </dependency>
 
+        <!-- External servlet container support for WAR deployment. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tomcat.embed</groupId>
+            <artifactId>tomcat-embed-el</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -30,6 +42,7 @@
     </dependencies>
 
     <build>
+        <finalName>tenner</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
