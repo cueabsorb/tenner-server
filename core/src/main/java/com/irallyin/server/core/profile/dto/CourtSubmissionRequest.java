@@ -21,15 +21,12 @@ public class CourtSubmissionRequest {
     @Size(max = 200, message = "球场名字不能超过200个字符")
     private String name;
 
-    @NotBlank(message = "球场地址不能为空")
     @Size(max = 500, message = "球场地址不能超过500个字符")
     private String address;
 
-    @NotBlank(message = "联系方式不能为空")
     @Size(max = 40, message = "联系方式不能超过40个字符")
     private String contactPhone;
 
-    @NotBlank(message = "微信小程序名称不能为空")
     @Size(max = 100, message = "微信小程序名称不能超过100个字符")
     private String wechatMiniProgramName;
 

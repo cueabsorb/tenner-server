@@ -214,9 +214,9 @@ public class MobileProfileService {
         values.put("country", normalize(request.getCountry()));
         values.put("city", normalize(request.getCity()));
         values.put("name", courtName);
-        values.put("address", normalize(request.getAddress()));
-        values.put("contact_phone", normalize(request.getContactPhone()));
-        values.put("wechat_mini_program_name", normalize(request.getWechatMiniProgramName()));
+        values.put("address", normalizeNullable(request.getAddress()));
+        values.put("contact_phone", normalizeNullable(request.getContactPhone()));
+        values.put("wechat_mini_program_name", normalizeNullable(request.getWechatMiniProgramName()));
         values.put("photo_urls", jsonPhotoUrls(request.getPhotoUrls()));
         values.put("description", normalizeNullable(request.getDescription()));
         values.put("latitude", request.getLatitude());
@@ -227,7 +227,9 @@ public class MobileProfileService {
         values.put("operator_managed", 0);
 
         contentSafetyService.assertSafeText((String) values.get("name"), "球场名字");
-        contentSafetyService.assertSafeText((String) values.get("address"), "球场地址");
+        if (StringUtils.hasText((String) values.get("address"))) {
+            contentSafetyService.assertSafeText((String) values.get("address"), "球场地址");
+        }
         contentSafetyService.assertSafeText((String) values.get("description"), "球场描述");
         mobileProfileMapper.insertCourt(values);
         writeEditLog(userId, "court_submission");
