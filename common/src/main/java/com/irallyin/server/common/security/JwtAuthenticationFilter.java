@@ -44,7 +44,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter implements Ord
                 SecurityContextHolder.clearContext();
                 log.error("JWT authentication failed for request {} {}: {}", request.getMethod(), request.getRequestURI(), e.getMessage(), e);
             }
-        } else if (!isPublicPath(request.getRequestURI())) {
+        } else if (!isPublicPath(requestPath(request))) {
             log.warn("JWT missing for protected request {} {}", request.getMethod(), request.getRequestURI());
         }
 
@@ -70,6 +70,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter implements Ord
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/api/actuator")
                 || path.startsWith("/actuator");
+    }
+
+    private String requestPath(HttpServletRequest request) {
+        String path = request.getServletPath();
+        if (StringUtils.hasText(path)) {
+            return path;
+        }
+
+        path = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (StringUtils.hasText(contextPath) && path.startsWith(contextPath)) {
+            return path.substring(contextPath.length());
+        }
+        return path;
     }
 
     @Override

@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Slf4j
 @RestController
-@RequestMapping("/mobile/profile")
+@RequestMapping({"/mobile/profile", "/api/mobile/profile"})
 @RequiredArgsConstructor
 @Tag(name = "Mobile Profile", description = "移动端个人主页编辑")
 public class MobileProfileController {

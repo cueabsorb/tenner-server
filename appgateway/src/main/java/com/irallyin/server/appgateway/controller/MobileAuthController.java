@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/mobile/auth")
+@RequestMapping({"/mobile/auth", "/api/mobile/auth"})
 @RequiredArgsConstructor
 @Tag(name = "Mobile Auth", description = "移动端邮箱注册认证")
 public class MobileAuthController {
