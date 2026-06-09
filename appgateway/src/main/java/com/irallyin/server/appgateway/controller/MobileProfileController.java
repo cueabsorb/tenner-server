@@ -182,6 +182,17 @@ public class MobileProfileController {
         }
     }
 
+    @GetMapping("/courts/{courtId}")
+    @Operation(summary = "获取网球场数据库详情")
+    public ApiResponse<HabitCourtResponse> getCourt(@PathVariable String courtId) {
+        try {
+            return ApiResponse.success(mobileProfileService.getCourt(courtId));
+        } catch (Exception e) {
+            log.error("Failed to get court detail: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @PostMapping("/habit-courts")
     @Operation(summary = "添加长期去的网球场")
     public ApiResponse<List<HabitCourtResponse>> addHabitCourt(Authentication authentication, @Valid @RequestBody HabitCourtAddRequest request) {

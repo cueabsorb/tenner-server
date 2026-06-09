@@ -183,6 +183,14 @@ public class MobileProfileService {
                 .toList();
     }
 
+    public HabitCourtResponse getCourt(String courtId) {
+        CourtDO court = mobileProfileMapper.findActiveCourtById(courtId);
+        if (court == null) {
+            throw new BusinessException(10004, "网球场不存在");
+        }
+        return toHabitCourtResponse(court);
+    }
+
     @Transactional
     public List<HabitCourtResponse> addHabitCourt(String userId, HabitCourtAddRequest request) {
         requireUser(userId);
