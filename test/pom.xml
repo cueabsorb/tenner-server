@@ -6,20 +6,20 @@
 
     <parent>
         <groupId>com.irallyin</groupId>
-        <artifactId>tenner-server</artifactId>
+        <artifactId>tennis-server</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>tenner-server-test</artifactId>
+    <artifactId>tennis-server-test</artifactId>
     <packaging>jar</packaging>
-    <name>Tenner Server Test</name>
+    <name>Tennis Server Test</name>
     <description>单元测试和集成测试</description>
 
     <dependencies>
         <!-- 依赖 web 模块 (传递依赖 core、data、common) -->
         <dependency>
             <groupId>com.irallyin</groupId>
-            <artifactId>tenner-server-web</artifactId>
+            <artifactId>tennis-server-web</artifactId>
         </dependency>
 
         <!-- Testing -->

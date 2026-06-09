@@ -43,7 +43,7 @@ const statusTabs: Array<{ value: CourtStatus; label: string; icon: React.ReactNo
 ];
 
 function App() {
-  const [token, setToken] = useState(() => localStorage.getItem('tennerAdminToken') || '');
+  const [token, setToken] = useState(() => localStorage.getItem('tennisAdminToken') || '');
   const [email, setEmail] = useState(ADMIN_EMAIL);
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState<CourtStatus>('pending');
@@ -99,7 +99,7 @@ function App() {
         method: 'POST',
         body: JSON.stringify({ email, password })
       });
-      localStorage.setItem('tennerAdminToken', data.token);
+      localStorage.setItem('tennisAdminToken', data.token);
       setToken(data.token);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '登录失败');
@@ -147,7 +147,7 @@ function App() {
   }
 
   function logout() {
-    localStorage.removeItem('tennerAdminToken');
+    localStorage.removeItem('tennisAdminToken');
     setToken('');
     setCourts([]);
     setSelectedId('');
@@ -158,7 +158,7 @@ function App() {
       <main className="login-shell">
         <form className="login-panel" onSubmit={login}>
           <div>
-            <p className="eyebrow">Tenner Admin</p>
+            <p className="eyebrow">Tennis Admin</p>
             <h1>球场审核后台</h1>
           </div>
           <label>
@@ -187,7 +187,7 @@ function App() {
     <main className="app-shell">
       <aside className="sidebar">
         <div>
-          <p className="eyebrow">Tenner Admin</p>
+          <p className="eyebrow">Tennis Admin</p>
           <h1>球场审核</h1>
         </div>
         <nav>

@@ -6,20 +6,20 @@
 
     <parent>
         <groupId>com.irallyin</groupId>
-        <artifactId>tenner-server</artifactId>
+        <artifactId>tennis-server</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>tenner-server-web</artifactId>
+    <artifactId>tennis-server-web</artifactId>
     <packaging>war</packaging>
-    <name>Tenner Server Web</name>
+    <name>Tennis Server Web</name>
     <description>网页访问层 - Spring Boot 启动入口、Web 端 Controller、API 文档</description>
 
     <dependencies>
         <!-- 依赖 core 模块 (传递依赖 data、common) -->
         <dependency>
             <groupId>com.irallyin</groupId>
-            <artifactId>tenner-server-core</artifactId>
+            <artifactId>tennis-server-core</artifactId>
         </dependency>
 
         <!-- Actuator -->
@@ -48,6 +48,7 @@
     </dependencies>
 
     <build>
+        <finalName>tennisweb</finalName>
         <plugins>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

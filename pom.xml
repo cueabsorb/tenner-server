@@ -12,10 +12,10 @@
     </parent>
 
     <groupId>com.irallyin</groupId>
-    <artifactId>tenner-server</artifactId>
+    <artifactId>tennis-server</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>Tenner Server</name>
+    <name>Tennis Server</name>
     <description>iRallyIn sports social platform backend server</description>
 
     <modules>
@@ -43,27 +43,27 @@
             <!-- ==================== Project Modules ==================== -->
             <dependency>
                 <groupId>com.irallyin</groupId>
-                <artifactId>tenner-server-common</artifactId>
+                <artifactId>tennis-server-common</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.irallyin</groupId>
-                <artifactId>tenner-server-data</artifactId>
+                <artifactId>tennis-server-data</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.irallyin</groupId>
-                <artifactId>tenner-server-core</artifactId>
+                <artifactId>tennis-server-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.irallyin</groupId>
-                <artifactId>tenner-server-web</artifactId>
+                <artifactId>tennis-server-web</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.irallyin</groupId>
-                <artifactId>tenner-server-appgateway</artifactId>
+                <artifactId>tennis-server-appgateway</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

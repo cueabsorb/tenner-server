@@ -1,4 +1,4 @@
-# Centralized runtime variables for tenner-server.
+# Centralized runtime variables for tennis-server.
 # Datasource config moved to shardingsphere-dev.yaml / shardingsphere-prod.yaml
 # Secrets are loaded from irallyin-variables-local.yml (not committed).
 

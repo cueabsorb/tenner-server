@@ -5,7 +5,7 @@ server:
 
 spring:
   application:
-    name: tenner-server-web
+    name: tennis-server-web
 
   # 默认 dev 环境
   profiles:
@@ -20,8 +20,8 @@ spring:
       - optional:file:../irallyin-variables.properties
       - optional:file:./irallyin-variables-local.yml
       - optional:file:../irallyin-variables-local.yml
-      - optional:file:${user.home}/tenner-server/irallyin-variables.yml
-      - optional:file:${user.home}/tenner-server/irallyin-variables.properties
+      - optional:file:${user.home}/tennis-server/irallyin-variables.yml
+      - optional:file:${user.home}/tennis-server/irallyin-variables.properties
       - optional:classpath:aliyun-irallyin-variables.properties
 
   # Jackson

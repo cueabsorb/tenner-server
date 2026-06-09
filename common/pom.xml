@@ -6,13 +6,13 @@
 
     <parent>
         <groupId>com.irallyin</groupId>
-        <artifactId>tenner-server</artifactId>
+        <artifactId>tennis-server</artifactId>
         <version>1.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>tenner-server-common</artifactId>
+    <artifactId>tennis-server-common</artifactId>
     <packaging>jar</packaging>
-    <name>Tenner Server Common</name>
+    <name>Tennis Server Common</name>
     <description>公共基础包 - 统一响应、异常处理、安全认证、通用配置</description>
 
     <dependencies>
