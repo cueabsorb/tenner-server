@@ -1,0 +1,6 @@
+-- ============================================================
+-- IRallyIn: court facility markers placeholder
+-- The actual court facility marker columns are kept in
+-- V1.3.0.03__extend_court_submission_workflow.sql so CourtDO and
+-- the court submission workflow migration stay synchronized.
+-- ============================================================
