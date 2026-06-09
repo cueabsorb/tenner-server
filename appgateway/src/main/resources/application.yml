@@ -11,6 +11,8 @@ spring:
 
   config:
     import:
+      - optional:classpath:${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
+      - optional:classpath:irallyin-variables.yml
       - optional:file:./irallyin-variables.yml
       - optional:file:../irallyin-variables.yml
       - optional:file:./${IRALLYIN_VARIABLES_FILE:irallyin-variables.properties}
