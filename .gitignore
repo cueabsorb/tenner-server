@@ -3,6 +3,8 @@
 *.class
 *.jar
 *.war
+**/node_modules/
+web/src/main/resources/static/admin/
 
 # IDE
 .idea/

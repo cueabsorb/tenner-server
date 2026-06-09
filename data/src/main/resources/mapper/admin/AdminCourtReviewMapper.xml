@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.mapper.AdminCourtReviewMapper">
+
+    <sql id="courtReviewColumns">
+        c.`id`,
+        c.`name`,
+        c.`address`,
+        c.`country`,
+        c.`city`,
+        c.`venue_status`,
+        c.`approval_status`,
+        c.`wechat_mini_program_name`,
+        c.`photo_urls`,
+        c.`description`,
+        c.`created_by`,
+        c.`reviewed_by`,
+        c.`reviewed_at`,
+        c.`rejected_reason`,
+        u.`email` AS submitter_email,
+        u.`display_name` AS submitter_name,
+        u.`phone` AS submitter_phone
+    </sql>
+
+    <select id="findCourts" resultType="map">
+        SELECT
+        <include refid="courtReviewColumns"/>
+        FROM `ir_profile`.`courts` c
+        LEFT JOIN `ir_auth`.`users` u ON u.`id` = c.`created_by`
+        WHERE c.`status` = 0
+        <if test="status != null and status != '' and status != 'all'">
+            <choose>
+                <when test="status == 'voided'">
+                    AND c.`approval_status` IN ('voided', 'rejected')
+                </when>
+                <otherwise>
+                    AND c.`approval_status` = #{status}
+                </otherwise>
+            </choose>
+        </if>
+        ORDER BY
+            CASE c.`approval_status`
+                WHEN 'pending' THEN 0
+                WHEN 'approved' THEN 1
+                WHEN 'voided' THEN 2
+                WHEN 'blacklisted' THEN 3
+                ELSE 4
+            END,
+            c.`reviewed_at` DESC,
+            c.`name` ASC
+    </select>
+
+    <select id="findCourtById" resultType="map">
+        SELECT
+        <include refid="courtReviewColumns"/>
+        FROM `ir_profile`.`courts` c
+        LEFT JOIN `ir_auth`.`users` u ON u.`id` = c.`created_by`
+        WHERE c.`id` = #{courtId}
+          AND c.`status` = 0
+        LIMIT 1
+    </select>
+
+    <update id="updateCourtReviewStatus">
+        UPDATE `ir_profile`.`courts`
+        SET `approval_status` = #{approvalStatus},
+            `venue_status` = #{venueStatus},
+            `reviewed_by` = #{reviewedBy},
+            `reviewed_at` = CURRENT_TIMESTAMP,
+            `rejected_reason` = #{reason}
+        WHERE `id` = #{courtId}
+          AND `status` = 0
+    </update>
+</mapper>

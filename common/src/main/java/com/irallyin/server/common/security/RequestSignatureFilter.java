@@ -39,7 +39,7 @@ public class RequestSignatureFilter extends OncePerRequestFilter {
         if (!signatureProperties.isEnabled()) {
             return true;
         }
-        String path = request.getRequestURI();
+        String path = requestPath(request);
         for (String excluded : signatureProperties.getExcludedPaths()) {
             if (path.startsWith(excluded)) {
                 return true;
@@ -173,6 +173,20 @@ public class RequestSignatureFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             throw new RuntimeException("SHA-256 not available", e);
         }
+    }
+
+    private String requestPath(HttpServletRequest request) {
+        String path = request.getServletPath();
+        if (path != null && !path.isBlank()) {
+            return path;
+        }
+
+        path = request.getRequestURI();
+        String contextPath = request.getContextPath();
+        if (contextPath != null && !contextPath.isBlank() && path.startsWith(contextPath)) {
+            return path.substring(contextPath.length());
+        }
+        return path;
     }
 
     private static PublicKey parsePublicKey(String base64Der) throws Exception {

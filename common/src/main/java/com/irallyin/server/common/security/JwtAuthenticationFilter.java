@@ -69,7 +69,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter implements Ord
                 || path.startsWith("/api/swagger-ui")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/api/actuator")
-                || path.startsWith("/actuator");
+                || path.startsWith("/actuator")
+                || path.startsWith("/api/admin/")
+                || path.startsWith("/admin/");
     }
 
     private String requestPath(HttpServletRequest request) {

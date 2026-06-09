@@ -16,7 +16,14 @@ public class SignatureProperties {
     private long timestampToleranceMs = 300000;
     private long nonceTtlSeconds = 360;
     private Map<String, AppCredential> apps = new HashMap<>();
-    private List<String> excludedPaths = List.of("/actuator", "/v3/api-docs", "/swagger-ui", "/swagger-ui.html");
+    private List<String> excludedPaths = List.of(
+            "/actuator",
+            "/v3/api-docs",
+            "/swagger-ui",
+            "/swagger-ui.html",
+            "/admin",
+            "/api/admin"
+    );
 
     @Data
     public static class AppCredential {

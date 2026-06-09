@@ -67,6 +67,11 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/actuator/**"
                         ).permitAll()
+                        // PC 后台静态页面与后台 API。后台 API 由 web 模块 AdminAuthenticationFilter 校验。
+                        .requestMatchers(
+                                "/admin/**",
+                                "/api/admin/**"
+                        ).permitAll()
                         // 认证相关端点
                         .requestMatchers(
                                 "/auth/login/**",
