@@ -9,6 +9,7 @@ public class RacketCatalogResponse {
     private String id;
     private String brand;
     private String model;
+    private String modelZh;
     private Integer unstrungWeightGram;
     private String stringPattern;
     private Integer balancePointMm;

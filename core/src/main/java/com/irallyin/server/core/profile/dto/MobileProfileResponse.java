@@ -30,6 +30,7 @@ public class MobileProfileResponse {
     private String availabilityText;
     private String acceptedLevelText;
     private String matchPreferenceText;
+    private List<RecentPlaySessionResponse> recentPlaySessions;
     private List<HabitCourtResponse> habitCourts;
     private Integer followingCount;
     private Integer followerCount;

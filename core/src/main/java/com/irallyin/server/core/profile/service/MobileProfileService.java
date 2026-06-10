@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Slf4j
@@ -23,6 +24,13 @@ import java.util.*;
 public class MobileProfileService {
     private static final String DEFAULT_INTRO = "因热爱而相聚，为梦想而挥拍";
     private static final String MOBILE_ADMIN_EMAIL = "tianfengzhang1984@gmail.com";
+    private static final DateTimeFormatter PROFILE_ACTIVITY_DATE_FORMATTER = DateTimeFormatter.ofPattern("M 月 d 日");
+    private static final Set<String> SYSTEM_AVATAR_NAMES = Set.of(
+            "female-01", "female-02", "female-03", "female-04", "female-05",
+            "female-06", "female-07", "female-08", "female-09", "female-10",
+            "male-01", "male-02", "male-03", "male-04", "male-05",
+            "male-06", "male-07", "male-08", "male-09", "male-10"
+    );
 
     private final MobileProfileMapper mobileProfileMapper;
     private final ProfileContentSafetyService contentSafetyService;
@@ -63,6 +71,7 @@ public class MobileProfileService {
                 .availabilityText(buildAvailabilityText(userId))
                 .acceptedLevelText(buildAcceptedLevelText(ntrpRating))
                 .matchPreferenceText(buildMatchPreferenceText(playPreference, tennisIdentity))
+                .recentPlaySessions(findRecentPlaySessions(userId))
                 .habitCourts(findHabitCourts(userId))
                 .followingCount(mobileProfileMapper.countFollowing(userId))
                 .followerCount(mobileProfileMapper.countFollowers(userId))
@@ -74,7 +83,7 @@ public class MobileProfileService {
 
     @Transactional
     public MobileProfileResponse updateAvatar(String userId, ProfileAvatarUpdateRequest request) {
-        String avatarUrl = normalizeNullable(request.getAvatarUrl());
+        String avatarUrl = normalizeAvatarValue(request.getAvatarUrl());
         updateUser(userId, Map.of("avatar_url", avatarUrl == null ? "" : avatarUrl));
         writeEditLog(userId, "avatar");
         return getProfile(userId);
@@ -235,6 +244,74 @@ public class MobileProfileService {
                 .toList();
     }
 
+    public List<RacketPlayerUsageResponse> listRacketPlayerUsages(String catalogId) {
+        Map<String, Object> catalog = mobileProfileMapper.findRacketCatalogById(catalogId);
+        if (catalog == null) {
+            throw new BusinessException(10004, "球拍不存在");
+        }
+        String brand = (String) rowValue(catalog, "brand");
+        String model = (String) rowValue(catalog, "model");
+        return mobileProfileMapper.listRacketPlayerUsages(brand, model)
+                .stream()
+                .map(this::toRacketPlayerUsageResponse)
+                .toList();
+    }
+
+    public List<ActivityRecordResponse> listActivityRecords(String userId) {
+        requireUser(userId);
+        return mobileProfileMapper.findActivityRecordsByUserId(userId)
+                .stream()
+                .map(this::toActivityRecordResponse)
+                .toList();
+    }
+
+    @Transactional
+    public ActivityRecordResponse createActivityRecord(String userId, ActivityRecordCreateRequest request) {
+        Map<String, Object> user = requireUser(userId);
+        CourtDO court = mobileProfileMapper.findActiveCourtById(request.getCourtId());
+        if (court == null) {
+            throw new BusinessException(10004, "球场不存在");
+        }
+
+        LocalDateTime startedAt = parseStartedAt(request.getStartedAt());
+        int durationMinutes = request.getDurationMinutes() == null ? 120 : request.getDurationMinutes();
+        if (durationMinutes <= 0 || durationMinutes > 1440) {
+            throw new BusinessException(10001, "活动时长不正确");
+        }
+
+        String partnerName = normalizeNullable(request.getPartnerName());
+        if (StringUtils.hasText(partnerName)) {
+            contentSafetyService.assertSafeText(partnerName, "球友备注");
+        }
+
+        String sessionId = UUID.randomUUID().toString();
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("id", sessionId);
+        values.put("owner_id", userId);
+        values.put("sport_type", "tennis");
+        values.put("session_type", "rally");
+        values.put("title", "打球记录");
+        values.put("started_at", startedAt);
+        values.put("ended_at", startedAt.plusMinutes(durationMinutes));
+        values.put("duration_minutes", durationMinutes);
+        values.put("court_id", court.getId());
+        values.put("court_name", court.getName());
+        values.put("notes", StringUtils.hasText(partnerName) ? "跟 " + partnerName : null);
+        values.put("privacy_level", "matchedPlayers");
+        mobileProfileMapper.insertPlaySession(values);
+        writeEditLog(userId, "activity_record");
+
+        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId);
+        if (created == null) {
+            created = new LinkedHashMap<>(values);
+            created.put("owner_name", rowValue(user, "display_name"));
+            created.put("owner_avatar_url", rowValue(user, "avatar_url"));
+            created.put("city", court.getCity());
+            created.put("address", court.getAddress());
+        }
+        return toActivityRecordResponse(created);
+    }
+
     @Transactional
     public RacketCatalogResponse createRacketCatalog(String userId, RacketCatalogCreateRequest request) {
         requireAdmin(userId);
@@ -242,6 +319,7 @@ public class MobileProfileService {
         values.put("id", UUID.randomUUID().toString());
         values.put("brand", normalize(request.getBrand()));
         values.put("model", normalize(request.getModel()));
+        values.put("model_zh", normalizeNullable(request.getModelZh()));
         values.put("unstrung_weight_gram", positiveIntegerOrNull(request.getUnstrungWeightGram(), "空拍质量"));
         values.put("string_pattern", normalizeNullable(request.getStringPattern()));
         values.put("balance_point_mm", positiveIntegerOrNull(request.getBalancePointMm(), "平衡点"));
@@ -529,6 +607,7 @@ public class MobileProfileService {
                 .id((String) rowValue(row, "id"))
                 .brand((String) rowValue(row, "brand"))
                 .model((String) rowValue(row, "model"))
+                .modelZh((String) rowValue(row, "model_zh"))
                 .unstrungWeightGram(integerValue(rowValue(row, "unstrung_weight_gram")))
                 .stringPattern((String) rowValue(row, "string_pattern"))
                 .balancePointMm(integerValue(rowValue(row, "balance_point_mm")))
@@ -536,6 +615,17 @@ public class MobileProfileService {
                 .gripSize((String) rowValue(row, "grip_size"))
                 .releaseYear(integerValue(rowValue(row, "release_year")))
                 .imageUrl((String) rowValue(row, "image_url"))
+                .build();
+    }
+
+    private RacketPlayerUsageResponse toRacketPlayerUsageResponse(Map<String, Object> row) {
+        return RacketPlayerUsageResponse.builder()
+                .id((String) rowValue(row, "id"))
+                .playerName((String) rowValue(row, "player_name"))
+                .brand((String) rowValue(row, "brand"))
+                .model((String) rowValue(row, "model"))
+                .usageYear(integerValue(rowValue(row, "usage_year")))
+                .notes((String) rowValue(row, "notes"))
                 .build();
     }
 
@@ -549,6 +639,139 @@ public class MobileProfileService {
             log.warn("Failed to load habit courts for userId={}, returning empty list", userId, e);
             return List.of();
         }
+    }
+
+    private List<RecentPlaySessionResponse> findRecentPlaySessions(String userId) {
+        try {
+            return mobileProfileMapper.findRecentPlaySessionsByUserId(userId)
+                    .stream()
+                    .map(this::toRecentPlaySessionResponse)
+                    .toList();
+        } catch (RuntimeException e) {
+            log.warn("Failed to load recent play sessions for userId={}, returning empty list", userId, e);
+            return List.of();
+        }
+    }
+
+    private RecentPlaySessionResponse toRecentPlaySessionResponse(Map<String, Object> row) {
+        LocalDateTime startedAt = localDateTimeValue(rowValue(row, "started_at"));
+        String title = normalizeNullable((String) rowValue(row, "title"));
+        String sessionType = (String) rowValue(row, "session_type");
+        if (!StringUtils.hasText(title)) {
+            title = sessionTypeLabel(sessionType) + "记录";
+        }
+
+        List<String> detailParts = new ArrayList<>();
+        String courtName = normalizeNullable((String) rowValue(row, "court_name"));
+        if (courtName != null) {
+            detailParts.add(courtName);
+        }
+        Integer duration = integerValue(rowValue(row, "duration_minutes"));
+        if (duration != null && duration > 0) {
+            detailParts.add(durationText(duration));
+        }
+        String notes = normalizeNullable((String) rowValue(row, "notes"));
+        if (notes != null) {
+            detailParts.add(notes);
+        }
+
+        return RecentPlaySessionResponse.builder()
+                .id((String) rowValue(row, "id"))
+                .dateText(startedAt == null ? "" : startedAt.format(PROFILE_ACTIVITY_DATE_FORMATTER))
+                .title(title)
+                .detail(detailParts.isEmpty() ? "运动记录已保存" : String.join(" · ", detailParts))
+                .mood(sessionTypeLabel(sessionType))
+                .build();
+    }
+
+    private ActivityRecordResponse toActivityRecordResponse(Map<String, Object> row) {
+        LocalDateTime startedAt = localDateTimeValue(rowValue(row, "started_at"));
+        String courtName = normalizeNullable((String) rowValue(row, "court_name"));
+        String notes = normalizeNullable((String) rowValue(row, "notes"));
+        Integer duration = integerValue(rowValue(row, "duration_minutes"));
+        String sessionType = (String) rowValue(row, "session_type");
+        String title = normalizeNullable((String) rowValue(row, "title"));
+        if (!StringUtils.hasText(title)) {
+            title = sessionTypeLabel(sessionType) + "记录";
+        }
+
+        String location = List.of(
+                        normalizeNullable((String) rowValue(row, "city")),
+                        normalizeNullable((String) rowValue(row, "district")),
+                        normalizeNullable((String) rowValue(row, "address"))
+                )
+                .stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .reduce((left, right) -> left + " · " + right)
+                .orElse(courtName == null ? "球场待完善" : courtName);
+
+        List<ActivityRecordResponse.FeedMetricResponse> metrics = new ArrayList<>();
+        metrics.add(ActivityRecordResponse.FeedMetricResponse.builder()
+                .label("时间")
+                .value(duration == null || duration <= 0 ? "待完善" : compactDurationText(duration))
+                .build());
+        metrics.add(ActivityRecordResponse.FeedMetricResponse.builder()
+                .label("球场")
+                .value(courtName == null ? "待完善" : courtName)
+                .build());
+        metrics.add(ActivityRecordResponse.FeedMetricResponse.builder()
+                .label("类型")
+                .value(sessionTypeLabel(sessionType))
+                .build());
+
+        return ActivityRecordResponse.builder()
+                .id((String) rowValue(row, "id"))
+                .author(Optional.ofNullable(normalizeNullable((String) rowValue(row, "owner_name"))).orElse("我"))
+                .avatarUrl((String) rowValue(row, "owner_avatar_url"))
+                .meta(startedAt == null ? "iRallyIn" : startedAt.format(DateTimeFormatter.ofPattern("M月d日 HH:mm")) + " · iRallyIn")
+                .location(location)
+                .title(title)
+                .body(notes == null ? (courtName == null ? "运动记录已保存" : courtName) : notes)
+                .metrics(metrics)
+                .badges(0)
+                .likeCount(0)
+                .build();
+    }
+
+    private String sessionTypeLabel(String sessionType) {
+        if ("match".equals(sessionType)) {
+            return "比赛";
+        }
+        if ("practiceMatch".equals(sessionType)) {
+            return "练习赛";
+        }
+        if ("training".equals(sessionType)) {
+            return "训练";
+        }
+        if ("rally".equals(sessionType)) {
+            return "拉球";
+        }
+        return "打球";
+    }
+
+    private String durationText(Integer minutes) {
+        int hours = minutes / 60;
+        int remainingMinutes = minutes % 60;
+        if (hours > 0 && remainingMinutes > 0) {
+            return hours + " 小时 " + remainingMinutes + " 分钟";
+        }
+        if (hours > 0) {
+            return hours + " 小时";
+        }
+        return minutes + " 分钟";
+    }
+
+    private String compactDurationText(Integer minutes) {
+        int hours = minutes / 60;
+        int remainingMinutes = minutes % 60;
+        if (hours > 0 && remainingMinutes > 0) {
+            return hours + "h " + remainingMinutes + "m";
+        }
+        if (hours > 0) {
+            return hours + "h";
+        }
+        return minutes + "m";
     }
 
     private HabitCourtResponse toHabitCourtResponse(Map<String, Object> row) {
@@ -809,6 +1032,24 @@ public class MobileProfileService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
+    private String normalizeAvatarValue(String value) {
+        String normalized = normalizeNullable(value);
+        if (normalized == null) {
+            return null;
+        }
+        String systemAvatarName = normalized
+                .replace("irallyin://avatar/", "")
+                .replace("avatar:", "")
+                .trim();
+        if (SYSTEM_AVATAR_NAMES.contains(systemAvatarName)) {
+            return systemAvatarName;
+        }
+        if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+            return normalized;
+        }
+        throw new BusinessException(10001, "头像名称不正确");
+    }
+
     private Double numberAsDouble(Object value, Object fallback) {
         Object source = value != null ? value : fallback;
         if (source instanceof Number number) {
@@ -855,6 +1096,28 @@ public class MobileProfileService {
             return LocalTime.parse(text);
         }
         return null;
+    }
+
+    private LocalDateTime localDateTimeValue(Object value) {
+        if (value instanceof LocalDateTime localDateTime) {
+            return localDateTime;
+        }
+        if (value instanceof java.sql.Timestamp timestamp) {
+            return timestamp.toLocalDateTime();
+        }
+        if (value instanceof String text && StringUtils.hasText(text)) {
+            return LocalDateTime.parse(text.replace(" ", "T"));
+        }
+        return null;
+    }
+
+    private LocalDateTime parseStartedAt(String value) {
+        String normalized = normalize(value);
+        try {
+            return LocalDateTime.parse(normalized.replace(" ", "T"));
+        } catch (RuntimeException e) {
+            throw new BusinessException(10001, "开始时间格式不正确");
+        }
     }
 
     private Integer courtCountValue(Integer value) {

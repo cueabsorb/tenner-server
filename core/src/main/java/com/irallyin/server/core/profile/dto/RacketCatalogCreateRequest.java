@@ -11,6 +11,7 @@ public class RacketCatalogCreateRequest {
     @NotBlank(message = "球拍型号不能为空")
     private String model;
 
+    private String modelZh;
     private Integer unstrungWeightGram;
     private String stringPattern;
     private Integer balancePointMm;

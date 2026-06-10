@@ -184,6 +184,112 @@
         ORDER BY hc.`is_primary` DESC, c.`name`
     </select>
 
+    <select id="findRecentPlaySessionsByUserId" resultType="map">
+        SELECT `id`,
+               `session_type`,
+               `title`,
+               `started_at`,
+               `duration_minutes`,
+               `court_id`,
+               `court_name`,
+               `notes`
+        FROM `ir_activity`.`play_sessions`
+        WHERE `owner_id` = #{userId}
+          AND `sport_type` = 'tennis'
+          AND `status` = 0
+        ORDER BY `started_at` DESC
+        LIMIT 2
+    </select>
+
+    <select id="findActivityRecordsByUserId" resultType="map">
+        SELECT ps.`id`,
+               ps.`owner_id`,
+               u.`display_name` AS owner_name,
+               u.`avatar_url` AS owner_avatar_url,
+               ps.`session_type`,
+               ps.`title`,
+               ps.`started_at`,
+               ps.`duration_minutes`,
+               ps.`court_id`,
+               ps.`court_name`,
+               ps.`notes`,
+               c.`city`,
+               c.`address`
+        FROM `ir_activity`.`play_sessions` ps
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = ps.`owner_id`
+         AND u.`status` = 0
+        LEFT JOIN `ir_profile`.`courts` c
+          ON c.`id` = ps.`court_id`
+         AND c.`status` = 0
+        WHERE ps.`owner_id` = #{userId}
+          AND ps.`sport_type` = 'tennis'
+          AND ps.`status` = 0
+        ORDER BY ps.`started_at` DESC
+        LIMIT 100
+    </select>
+
+    <select id="findPlaySessionById" resultType="map">
+        SELECT ps.`id`,
+               ps.`owner_id`,
+               u.`display_name` AS owner_name,
+               u.`avatar_url` AS owner_avatar_url,
+               ps.`session_type`,
+               ps.`title`,
+               ps.`started_at`,
+               ps.`duration_minutes`,
+               ps.`court_id`,
+               ps.`court_name`,
+               ps.`notes`,
+               c.`city`,
+               c.`address`
+        FROM `ir_activity`.`play_sessions` ps
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = ps.`owner_id`
+         AND u.`status` = 0
+        LEFT JOIN `ir_profile`.`courts` c
+          ON c.`id` = ps.`court_id`
+         AND c.`status` = 0
+        WHERE ps.`id` = #{sessionId}
+          AND ps.`sport_type` = 'tennis'
+          AND ps.`status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertPlaySession">
+        INSERT INTO `ir_activity`.`play_sessions`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">`id`,</if>
+            <if test="values.containsKey('owner_id')">`owner_id`,</if>
+            <if test="values.containsKey('sport_type')">`sport_type`,</if>
+            <if test="values.containsKey('session_type')">`session_type`,</if>
+            <if test="values.containsKey('title')">`title`,</if>
+            <if test="values.containsKey('started_at')">`started_at`,</if>
+            <if test="values.containsKey('ended_at')">`ended_at`,</if>
+            <if test="values.containsKey('duration_minutes')">`duration_minutes`,</if>
+            <if test="values.containsKey('court_id')">`court_id`,</if>
+            <if test="values.containsKey('court_name')">`court_name`,</if>
+            <if test="values.containsKey('notes')">`notes`,</if>
+            <if test="values.containsKey('privacy_level')">`privacy_level`,</if>
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">#{values.id},</if>
+            <if test="values.containsKey('owner_id')">#{values.owner_id},</if>
+            <if test="values.containsKey('sport_type')">#{values.sport_type},</if>
+            <if test="values.containsKey('session_type')">#{values.session_type},</if>
+            <if test="values.containsKey('title')">#{values.title},</if>
+            <if test="values.containsKey('started_at')">#{values.started_at},</if>
+            <if test="values.containsKey('ended_at')">#{values.ended_at},</if>
+            <if test="values.containsKey('duration_minutes')">#{values.duration_minutes},</if>
+            <if test="values.containsKey('court_id')">#{values.court_id},</if>
+            <if test="values.containsKey('court_name')">#{values.court_name},</if>
+            <if test="values.containsKey('notes')">#{values.notes},</if>
+            <if test="values.containsKey('privacy_level')">#{values.privacy_level},</if>
+            0
+        </trim>
+    </insert>
+
     <select id="searchCourts" resultType="com.irallyin.server.data.domain.CourtDO">
         SELECT c.`id`,
                c.`country`,
@@ -556,6 +662,7 @@
         SELECT `id`,
                `brand`,
                `model`,
+               `model_zh`,
                `unstrung_weight_gram`,
                `string_pattern`,
                `balance_point_mm`,
@@ -573,6 +680,7 @@
         SELECT `id`,
                `brand`,
                `model`,
+               `model_zh`,
                `unstrung_weight_gram`,
                `string_pattern`,
                `balance_point_mm`,
@@ -586,11 +694,26 @@
         LIMIT 1
     </select>
 
+    <select id="listRacketPlayerUsages" resultType="map">
+        SELECT `id`,
+               `player_name`,
+               `brand`,
+               `model`,
+               `usage_year`,
+               `notes`
+        FROM `ir_profile`.`racket_player_usages`
+        WHERE `brand` = #{brand}
+          AND `model` = #{model}
+          AND `status` = 0
+        ORDER BY `usage_year` DESC, `player_name`
+        LIMIT 100
+    </select>
+
     <insert id="insertRacketCatalog">
         INSERT INTO `ir_profile`.`racket_catalog`
-        (`id`, `brand`, `model`, `unstrung_weight_gram`, `string_pattern`, `balance_point_mm`, `length_inch`, `grip_size`, `release_year`, `image_url`, `status`)
+        (`id`, `brand`, `model`, `model_zh`, `unstrung_weight_gram`, `string_pattern`, `balance_point_mm`, `length_inch`, `grip_size`, `release_year`, `image_url`, `status`)
         VALUES
-        (#{values.id}, #{values.brand}, #{values.model}, #{values.unstrung_weight_gram}, #{values.string_pattern}, #{values.balance_point_mm}, #{values.length_inch}, #{values.grip_size}, #{values.release_year}, #{values.image_url}, 0)
+        (#{values.id}, #{values.brand}, #{values.model}, #{values.model_zh}, #{values.unstrung_weight_gram}, #{values.string_pattern}, #{values.balance_point_mm}, #{values.length_inch}, #{values.grip_size}, #{values.release_year}, #{values.image_url}, 0)
     </insert>
 
     <insert id="insertUserRacket">

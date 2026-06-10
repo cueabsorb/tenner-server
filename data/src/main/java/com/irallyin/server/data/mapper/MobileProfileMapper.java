@@ -36,6 +36,14 @@ public interface MobileProfileMapper {
 
     List<Map<String, Object>> findHabitCourtsByUserId(@Param("userId") String userId);
 
+    List<Map<String, Object>> findRecentPlaySessionsByUserId(@Param("userId") String userId);
+
+    List<Map<String, Object>> findActivityRecordsByUserId(@Param("userId") String userId);
+
+    Map<String, Object> findPlaySessionById(@Param("sessionId") String sessionId);
+
+    int insertPlaySession(@Param("values") Map<String, Object> values);
+
     List<CourtDO> searchCourts(
             @Param("country") String country,
             @Param("province") String province,
@@ -103,6 +111,8 @@ public interface MobileProfileMapper {
     List<Map<String, Object>> listRacketCatalog();
 
     Map<String, Object> findRacketCatalogById(@Param("catalogId") String catalogId);
+
+    List<Map<String, Object>> listRacketPlayerUsages(@Param("brand") String brand, @Param("model") String model);
 
     int insertRacketCatalog(@Param("values") Map<String, Object> values);
 

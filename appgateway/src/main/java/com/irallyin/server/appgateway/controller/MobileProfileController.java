@@ -205,6 +205,42 @@ public class MobileProfileController {
         }
     }
 
+    @GetMapping("/racket-catalog/{catalogId}/player-usages")
+    @Operation(summary = "获取职业球员使用球拍记录")
+    public ApiResponse<List<RacketPlayerUsageResponse>> listRacketPlayerUsages(@PathVariable String catalogId) {
+        try {
+            return ApiResponse.success(mobileProfileService.listRacketPlayerUsages(catalogId));
+        } catch (Exception e) {
+            log.error("Failed to list racket player usages: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/activity-records")
+    @Operation(summary = "获取精彩记录活动列表")
+    public ApiResponse<List<ActivityRecordResponse>> listActivityRecords(Authentication authentication) {
+        try {
+            return ApiResponse.success(mobileProfileService.listActivityRecords(currentUserId(authentication)));
+        } catch (Exception e) {
+            log.error("Failed to list activity records: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/activity-records")
+    @Operation(summary = "添加精彩记录活动")
+    public ApiResponse<ActivityRecordResponse> createActivityRecord(
+            Authentication authentication,
+            @Valid @RequestBody ActivityRecordCreateRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.createActivityRecord(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to create activity record: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @PostMapping("/equipment/rackets")
     @Operation(summary = "添加我的球拍装备")
     public ApiResponse<UserRacketAddResponse> addUserRacket(Authentication authentication, @Valid @RequestBody UserRacketAddRequest request) {
