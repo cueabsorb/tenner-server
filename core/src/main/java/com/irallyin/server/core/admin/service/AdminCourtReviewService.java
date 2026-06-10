@@ -232,11 +232,18 @@ public class AdminCourtReviewService {
         if (normalized == null) {
             return null;
         }
+        if (isEndOfDayTime(normalized)) {
+            return LocalTime.of(23, 59, 59);
+        }
         try {
             return LocalTime.parse(normalized);
         } catch (RuntimeException e) {
             throw new BusinessException(10001, fieldName + "格式不正确");
         }
+    }
+
+    private boolean isEndOfDayTime(String value) {
+        return "24:00".equals(value) || "24:00:00".equals(value);
     }
 
     private String indoorOutdoorValue(Boolean hasIndoor, Boolean hasOutdoor) {
@@ -362,10 +369,20 @@ public class AdminCourtReviewService {
 
     private String timeStringValue(Object value) {
         if (value instanceof LocalTime localTime) {
+            if (LocalTime.of(23, 59, 59).equals(localTime)) {
+                return "24:00";
+            }
             return localTime.toString();
         }
         if (value instanceof Time time) {
-            return time.toLocalTime().toString();
+            LocalTime localTime = time.toLocalTime();
+            if (LocalTime.of(23, 59, 59).equals(localTime)) {
+                return "24:00";
+            }
+            return localTime.toString();
+        }
+        if (value instanceof String text && ("23:59:59".equals(text) || "24:00:00".equals(text))) {
+            return "24:00";
         }
         return value == null ? null : String.valueOf(value);
     }

@@ -680,11 +680,18 @@ public class MobileProfileService {
         if (normalized == null) {
             return null;
         }
+        if (isEndOfDayTime(normalized)) {
+            return LocalTime.of(23, 59, 59);
+        }
         try {
             return LocalTime.parse(normalized);
         } catch (RuntimeException e) {
             throw new BusinessException(10001, fieldName + "格式不正确");
         }
+    }
+
+    private boolean isEndOfDayTime(String value) {
+        return "24:00".equals(value) || "24:00:00".equals(value);
     }
 
     private String indoorOutdoorValue(Boolean hasIndoor, Boolean hasOutdoor) {
