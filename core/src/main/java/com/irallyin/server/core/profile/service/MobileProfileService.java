@@ -218,6 +218,7 @@ public class MobileProfileService {
 
         return builders.entrySet()
                 .stream()
+                .limit(100)
                 .map(entry -> entry.getValue()
                         .habitCourts(courtNames.getOrDefault(entry.getKey(), List.of()))
                         .build())

@@ -268,7 +268,7 @@
         ORDER BY u.`display_name`,
                  hc.`is_primary` DESC,
                  c.`name`
-        LIMIT 120
+        LIMIT 300
     </select>
 
     <select id="findActiveCourtById" resultType="com.irallyin.server.data.domain.CourtDO">
