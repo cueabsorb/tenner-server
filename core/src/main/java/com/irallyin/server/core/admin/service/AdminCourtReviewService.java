@@ -286,6 +286,8 @@ public class AdminCourtReviewService {
                 .openingTime(timeStringValue(row.get("opening_time")))
                 .closingTime(timeStringValue(row.get("closing_time")))
                 .reviewedBy(stringValue(row, "reviewed_by"))
+                .reviewerName(stringValue(row, "reviewer_name"))
+                .reviewerEmail(stringValue(row, "reviewer_email"))
                 .reviewedAt(localDateTimeValue(row.get("reviewed_at")))
                 .rejectedReason(stringValue(row, "rejected_reason"))
                 .build();

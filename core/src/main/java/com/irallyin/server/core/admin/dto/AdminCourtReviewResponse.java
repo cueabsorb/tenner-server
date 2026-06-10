@@ -37,6 +37,8 @@ public class AdminCourtReviewResponse {
     private String openingTime;
     private String closingTime;
     private String reviewedBy;
+    private String reviewerName;
+    private String reviewerEmail;
     private LocalDateTime reviewedAt;
     private String rejectedReason;
 }

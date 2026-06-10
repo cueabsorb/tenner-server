@@ -31,7 +31,9 @@
         c.`rejected_reason`,
         u.`email` AS submitter_email,
         u.`display_name` AS submitter_name,
-        u.`phone` AS submitter_phone
+        u.`phone` AS submitter_phone,
+        ru.`display_name` AS reviewer_name,
+        ru.`email` AS reviewer_email
     </sql>
 
     <select id="findCourts" resultType="map">
@@ -41,6 +43,7 @@
             <include refid="courtReviewColumns"/>
             FROM `ir_profile`.`courts` c
             LEFT JOIN `ir_auth`.`users` u ON u.`id` = c.`created_by`
+            LEFT JOIN `ir_auth`.`users` ru ON ru.`id` = c.`reviewed_by`
             WHERE c.`status` = 0
             <if test="status != null and status != '' and status != 'all'">
                 <choose>
@@ -84,9 +87,12 @@
                 r.`rejected_reason`,
                 u.`email` AS submitter_email,
                 u.`display_name` AS submitter_name,
-                u.`phone` AS submitter_phone
+                u.`phone` AS submitter_phone,
+                ru.`display_name` AS reviewer_name,
+                ru.`email` AS reviewer_email
             FROM `ir_profile`.`court_change_requests` r
             LEFT JOIN `ir_auth`.`users` u ON u.`id` = r.`submitted_by`
+            LEFT JOIN `ir_auth`.`users` ru ON ru.`id` = r.`reviewed_by`
             WHERE r.`status` = 0
             <if test="status != null and status != '' and status != 'all'">
                 <choose>
@@ -116,6 +122,7 @@
         <include refid="courtReviewColumns"/>
         FROM `ir_profile`.`courts` c
         LEFT JOIN `ir_auth`.`users` u ON u.`id` = c.`created_by`
+        LEFT JOIN `ir_auth`.`users` ru ON ru.`id` = c.`reviewed_by`
         WHERE c.`id` = #{courtId}
           AND c.`status` = 0
         LIMIT 1
