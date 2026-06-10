@@ -1,5 +1,6 @@
 package com.irallyin.server.core.auth.service;
 
+import com.irallyin.server.common.cache.RedisKeys;
 import com.irallyin.server.common.exception.BusinessException;
 import com.irallyin.server.core.auth.dto.SendVerificationCodeRequest;
 import com.irallyin.server.core.auth.dto.VerificationCodeResponse;
@@ -19,7 +20,6 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class VerificationCodeService {
     private static final Duration CODE_TTL = Duration.ofMinutes(5);
-    private static final String REDIS_KEY_PREFIX = "verification-code:";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     private final StringRedisTemplate stringRedisTemplate;
@@ -75,7 +75,7 @@ public class VerificationCodeService {
     }
 
     private String buildRedisKey(String identifier, String scene) {
-        return REDIS_KEY_PREFIX + identifier + ":" + scene;
+        return RedisKeys.verificationCode(identifier, scene);
     }
 
     private String normalizeIdentifier(String identifier) {

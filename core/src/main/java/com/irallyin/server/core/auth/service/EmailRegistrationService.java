@@ -1,6 +1,7 @@
 package com.irallyin.server.core.auth.service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.irallyin.server.common.cache.RedisKeys;
 import com.irallyin.server.common.exception.BusinessException;
 import com.irallyin.server.common.security.JwtTokenProvider;
 import com.irallyin.server.core.auth.dto.AuthTokenResponse;
@@ -183,7 +184,7 @@ public class EmailRegistrationService {
     }
 
     private String buildRegisterCodeKey(String email) {
-        return "verification-code:" + email + ":" + REGISTER_SCENE;
+        return RedisKeys.verificationCode(email, REGISTER_SCENE);
     }
 
     private AuthTokenResponse issueTokens(UserDO user, String deviceId, String deviceInfo) {

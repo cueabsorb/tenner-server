@@ -78,6 +78,8 @@ public interface MobileProfileMapper {
             @Param("isPrimary") boolean isPrimary
     );
 
+    int deactivateHabitCourt(@Param("habitId") String habitId, @Param("courtId") String courtId);
+
     int deactivateStrengthTags(@Param("profileId") String profileId);
 
     int upsertStrengthTag(@Param("id") String id, @Param("profileId") String profileId, @Param("tag") String tag);
@@ -93,6 +95,14 @@ public interface MobileProfileMapper {
     );
 
     int insertEditLog(@Param("id") String id, @Param("userId") String userId, @Param("fieldName") String fieldName);
+
+    int upsertFollowRelationship(
+            @Param("id") String id,
+            @Param("userId") String userId,
+            @Param("targetUserId") String targetUserId
+    );
+
+    int countFollowRelationship(@Param("userId") String userId, @Param("targetUserId") String targetUserId);
 
     int countFollowing(@Param("userId") String userId);
 

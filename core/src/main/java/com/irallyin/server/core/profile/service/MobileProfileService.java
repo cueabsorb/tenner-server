@@ -2,6 +2,7 @@ package com.irallyin.server.core.profile.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.irallyin.server.common.cache.RedisKeys;
 import com.irallyin.server.common.exception.BusinessException;
 import com.irallyin.server.core.profile.dto.*;
 import com.irallyin.server.data.domain.CourtDO;
@@ -9,6 +10,7 @@ import com.irallyin.server.data.mapper.MobileProfileMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -35,6 +37,7 @@ public class MobileProfileService {
     private final MobileProfileMapper mobileProfileMapper;
     private final ProfileContentSafetyService contentSafetyService;
     private final ObjectMapper objectMapper;
+    private final StringRedisTemplate stringRedisTemplate;
 
     public MobileProfileResponse getProfile(String userId) {
         Map<String, Object> user = requireUser(userId);
@@ -73,7 +76,7 @@ public class MobileProfileService {
                 .matchPreferenceText(buildMatchPreferenceText(playPreference, tennisIdentity))
                 .recentPlaySessions(findRecentPlaySessions(userId))
                 .habitCourts(findHabitCourts(userId))
-                .followingCount(mobileProfileMapper.countFollowing(userId))
+                .followingCount(getFollowingCount(userId))
                 .followerCount(mobileProfileMapper.countFollowers(userId))
                 .receivedLikeCount(mobileProfileMapper.sumReceivedLikes(userId))
                 .racketCount(mobileProfileMapper.countRacketsByUserId(userId))
@@ -237,6 +240,26 @@ public class MobileProfileService {
                 .toList();
     }
 
+    @Transactional
+    public UserFollowResponse followUser(String userId, String targetUserId) {
+        requireUser(userId);
+        String normalizedTargetUserId = normalize(targetUserId);
+        if (userId.equals(normalizedTargetUserId)) {
+            throw new BusinessException(10001, "不能关注自己");
+        }
+        requireUser(normalizedTargetUserId);
+
+        mobileProfileMapper.upsertFollowRelationship(UUID.randomUUID().toString(), userId, normalizedTargetUserId);
+        int followingCount = refreshFollowingCountCache(userId);
+        writeEditLog(userId, "follow_user");
+        return UserFollowResponse.builder()
+                .userId(userId)
+                .targetUserId(normalizedTargetUserId)
+                .followed(true)
+                .followingCount(followingCount)
+                .build();
+    }
+
     public List<RacketCatalogResponse> listRacketCatalog() {
         return mobileProfileMapper.listRacketCatalog()
                 .stream()
@@ -396,6 +419,23 @@ public class MobileProfileService {
         }
         mobileProfileMapper.upsertHabitCourt(UUID.randomUUID().toString(), habitId, request.getCourtId(), isPrimary);
         writeEditLog(userId, "habit_court");
+        return findHabitCourts(userId);
+    }
+
+    @Transactional
+    public List<HabitCourtResponse> removeHabitCourt(String userId, String courtId) {
+        requireUser(userId);
+        CourtDO court = mobileProfileMapper.findActiveCourtById(courtId);
+        if (court == null) {
+            throw new BusinessException(10004, "网球场不存在");
+        }
+        Map<String, Object> habit = mobileProfileMapper.findActivePlayingHabitByUserId(userId);
+        if (habit == null) {
+            return List.of();
+        }
+        String habitId = (String) rowValue(habit, "id");
+        mobileProfileMapper.deactivateHabitCourt(habitId, courtId);
+        writeEditLog(userId, "habit_court_remove");
         return findHabitCourts(userId);
     }
 
@@ -1170,6 +1210,30 @@ public class MobileProfileService {
             return number.intValue() != 0;
         }
         return false;
+    }
+
+    private int getFollowingCount(String userId) {
+        String redisKey = RedisKeys.followingCount(userId);
+        try {
+            String cached = stringRedisTemplate.opsForValue().get(redisKey);
+            if (StringUtils.hasText(cached)) {
+                return Integer.parseInt(cached);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to read following count from Redis for userId={}: {}", userId, e.getMessage());
+        }
+        return refreshFollowingCountCache(userId);
+    }
+
+    private int refreshFollowingCountCache(String userId) {
+        int followingCount = mobileProfileMapper.countFollowing(userId);
+        try {
+            // 长期有效，不设置过期时间；关注关系变化时主动刷新。
+            stringRedisTemplate.opsForValue().set(RedisKeys.followingCount(userId), String.valueOf(followingCount));
+        } catch (Exception e) {
+            log.warn("Failed to write following count to Redis for userId={}: {}", userId, e.getMessage());
+        }
+        return followingCount;
     }
 
     private Object rowValue(Map<String, Object> row, String columnName) {

@@ -558,6 +558,15 @@
         ON DUPLICATE KEY UPDATE `is_primary` = VALUES(`is_primary`), `status` = 0
     </insert>
 
+    <update id="deactivateHabitCourt">
+        UPDATE `ir_profile`.`habit_courts`
+        SET `status` = -1,
+            `is_primary` = 0
+        WHERE `habit_id` = #{habitId}
+          AND `court_id` = #{courtId}
+          AND `status` = 0
+    </update>
+
     <update id="deactivateStrengthTags">
         UPDATE `ir_profile`.`tennis_profile_strength_tags`
         SET `status` = -1
@@ -603,6 +612,24 @@
         INSERT INTO `ir_profile`.`profile_edit_audit_logs` (`id`, `user_id`, `field_name`, `status`)
         VALUES (#{id}, #{userId}, #{fieldName}, 0)
     </insert>
+
+    <insert id="upsertFollowRelationship">
+        INSERT INTO `ir_activity`.`player_relationship_edges`
+            (`id`, `user_id`, `peer_user_id`, `total_sessions`, `relationship_strength`, `status`)
+        VALUES
+            (#{id}, #{userId}, #{targetUserId}, 0, 0.00, 0)
+        ON DUPLICATE KEY UPDATE
+            `status` = 0,
+            `updated_at` = CURRENT_TIMESTAMP
+    </insert>
+
+    <select id="countFollowRelationship" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_activity`.`player_relationship_edges`
+        WHERE `user_id` = #{userId}
+          AND `peer_user_id` = #{targetUserId}
+          AND `status` = 0
+    </select>
 
     <select id="countFollowing" resultType="int">
         SELECT COUNT(*)

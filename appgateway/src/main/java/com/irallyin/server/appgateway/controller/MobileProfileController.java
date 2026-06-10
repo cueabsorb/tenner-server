@@ -194,6 +194,17 @@ public class MobileProfileController {
         }
     }
 
+    @PostMapping("/users/{targetUserId}/follow")
+    @Operation(summary = "关注球友")
+    public ApiResponse<UserFollowResponse> followUser(Authentication authentication, @PathVariable String targetUserId) {
+        try {
+            return ApiResponse.success(mobileProfileService.followUser(currentUserId(authentication), targetUserId));
+        } catch (Exception e) {
+            log.error("Failed to follow user: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @GetMapping("/racket-catalog")
     @Operation(summary = "获取球拍基础数据")
     public ApiResponse<List<RacketCatalogResponse>> listRacketCatalog() {
@@ -295,6 +306,17 @@ public class MobileProfileController {
             return ApiResponse.success(mobileProfileService.addHabitCourt(currentUserId(authentication), request));
         } catch (Exception e) {
             log.error("Failed to add habit court: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @DeleteMapping("/habit-courts/{courtId}")
+    @Operation(summary = "删除长期去的网球场")
+    public ApiResponse<List<HabitCourtResponse>> removeHabitCourt(Authentication authentication, @PathVariable String courtId) {
+        try {
+            return ApiResponse.success(mobileProfileService.removeHabitCourt(currentUserId(authentication), courtId));
+        } catch (Exception e) {
+            log.error("Failed to remove habit court: {}", e.getMessage(), e);
             throw e;
         }
     }
