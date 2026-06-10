@@ -15,6 +15,7 @@ public class HabitCourtResponse {
     private String province;
     private String city;
     private String contactPhone;
+    private String description;
     private String venueStatus;
     private String approvalStatus;
     private String createdBy;
