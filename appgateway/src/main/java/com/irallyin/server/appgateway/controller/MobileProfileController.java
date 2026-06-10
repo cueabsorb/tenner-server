@@ -171,11 +171,12 @@ public class MobileProfileController {
     @Operation(summary = "搜索可添加的常去网球场")
     public ApiResponse<List<HabitCourtResponse>> searchHabitCourts(
             @RequestParam(required = false) String country,
+            @RequestParam(required = false) String province,
             @RequestParam(required = false) String city,
             @RequestParam(required = false) String keyword
     ) {
         try {
-            return ApiResponse.success(mobileProfileService.searchCourts(country, city, keyword));
+            return ApiResponse.success(mobileProfileService.searchCourts(country, province, city, keyword));
         } catch (Exception e) {
             log.error("Failed to search habit courts: {}", e.getMessage(), e);
             throw e;

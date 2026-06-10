@@ -28,6 +28,7 @@ public class AdminCourtReviewResponse {
     private String description;
     private Double latitude;
     private Double longitude;
+    private String mapSource;
     private String surfaceType;
     private String indoorOutdoor;
     private Boolean hasIndoor;

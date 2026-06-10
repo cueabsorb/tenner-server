@@ -174,11 +174,12 @@ public class MobileProfileService {
         return getProfile(userId);
     }
 
-    public List<HabitCourtResponse> searchCourts(String country, String city, String keyword) {
+    public List<HabitCourtResponse> searchCourts(String country, String province, String city, String keyword) {
         String normalizedCountry = normalizeNullable(country);
+        String normalizedProvince = normalizeNullable(province);
         String normalizedCity = normalizeNullable(city);
         String normalizedKeyword = normalizeNullable(keyword);
-        return mobileProfileMapper.searchCourts(normalizedCountry, normalizedCity, normalizedKeyword)
+        return mobileProfileMapper.searchCourts(normalizedCountry, normalizedProvince, normalizedCity, normalizedKeyword)
                 .stream()
                 .map(this::toHabitCourtResponse)
                 .toList();
@@ -231,6 +232,7 @@ public class MobileProfileService {
         values.put("description", normalizeNullable(request.getDescription()));
         values.put("latitude", request.getLatitude());
         values.put("longitude", request.getLongitude());
+        values.put("map_source", normalizeNullable(request.getMapSource()));
         values.put("surface_type", normalizeNullable(request.getSurfaceType()));
         values.put("has_indoor", request.getHasIndoor());
         values.put("has_outdoor", request.getHasOutdoor());
@@ -421,6 +423,7 @@ public class MobileProfileService {
                 .isPrimary(booleanValue(rowValue(row, "is_primary")))
                 .latitude(numberAsDouble(rowValue(row, "latitude"), null))
                 .longitude(numberAsDouble(rowValue(row, "longitude"), null))
+                .mapSource((String) rowValue(row, "map_source"))
                 .surfaceType((String) rowValue(row, "surface_type"))
                 .indoorOutdoor((String) rowValue(row, "indoor_outdoor"))
                 .hasIndoor(booleanValue(rowValue(row, "has_indoor")))
@@ -449,6 +452,7 @@ public class MobileProfileService {
                 .isPrimary(false)
                 .latitude(court.getLatitude())
                 .longitude(court.getLongitude())
+                .mapSource(court.getMapSource())
                 .surfaceType(court.getSurfaceType())
                 .indoorOutdoor(court.getIndoorOutdoor())
                 .hasIndoor(court.getHasIndoor())
@@ -474,6 +478,7 @@ public class MobileProfileService {
         values.put("description", normalizeNullable(request.getDescription()));
         values.put("latitude", request.getLatitude());
         values.put("longitude", request.getLongitude());
+        values.put("map_source", normalizeNullable(request.getMapSource()));
         values.put("surface_type", normalizeNullable(request.getSurfaceType()));
         values.put("has_indoor", request.getHasIndoor());
         values.put("has_outdoor", request.getHasOutdoor());

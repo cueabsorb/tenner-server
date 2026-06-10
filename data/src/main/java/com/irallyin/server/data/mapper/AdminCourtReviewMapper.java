@@ -25,7 +25,7 @@ public interface AdminCourtReviewMapper {
             @Param("reason") String reason
     );
 
-    int applyCourtChangeRequest(@Param("requestId") String requestId);
+    int applyCourtChangeRequest(@Param("requestId") String requestId, @Param("reviewedBy") String reviewedBy);
 
     int updateCourtChangeRequestReviewStatus(
             @Param("requestId") String requestId,

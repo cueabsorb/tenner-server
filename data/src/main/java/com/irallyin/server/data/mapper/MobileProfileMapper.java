@@ -12,6 +12,8 @@ public interface MobileProfileMapper {
 
     Map<String, Object> findUserById(@Param("userId") String userId);
 
+    Map<String, Object> findUserByEmail(@Param("email") String email);
+
     int updateUser(@Param("userId") String userId, @Param("values") Map<String, Object> values);
 
     Map<String, Object> findActiveTennisProfileByUserId(@Param("userId") String userId);
@@ -36,6 +38,7 @@ public interface MobileProfileMapper {
 
     List<CourtDO> searchCourts(
             @Param("country") String country,
+            @Param("province") String province,
             @Param("city") String city,
             @Param("keyword") String keyword
     );

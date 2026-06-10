@@ -65,13 +65,14 @@ public class AdminCourtReviewService {
 
     @Transactional
     public AdminCourtReviewResponse reviewMobileCourt(String userId, String courtId, AdminCourtReviewUpdateRequest request) {
-        String adminEmail = assertMobileAdmin(userId);
+        assertMobileAdmin(userId);
+        String reviewedByUserId = userId;
         String approvalStatus = normalizeStatus(request.getApprovalStatus());
         if ("voided".equals(approvalStatus) || "blacklisted".equals(approvalStatus)) {
             Map<String, Object> pendingChangeRequest = adminCourtReviewMapper.findPendingChangeRequestByCourtId(courtId);
             int deleted = pendingChangeRequest != null
-                    ? adminCourtReviewMapper.deletePendingChangeRequest(stringValue(pendingChangeRequest, "id"), adminEmail, request.getReason())
-                    : adminCourtReviewMapper.deletePendingCourt(courtId, adminEmail, request.getReason());
+                    ? adminCourtReviewMapper.deletePendingChangeRequest(stringValue(pendingChangeRequest, "id"), reviewedByUserId, request.getReason())
+                    : adminCourtReviewMapper.deletePendingCourt(courtId, reviewedByUserId, request.getReason());
             if (deleted == 0) {
                 throw new BusinessException(10004, "待审核网球场不存在");
             }
@@ -80,20 +81,21 @@ public class AdminCourtReviewService {
                     .approvalStatus("voided")
                     .approvalStatusText(statusText("voided"))
                     .venueStatus("inactive")
-                    .reviewedBy(adminEmail)
+                    .reviewedBy(reviewedByUserId)
                     .reviewedAt(LocalDateTime.now())
                     .rejectedReason(request.getReason())
                     .build();
         }
-        return updateCourtStatus(courtId, request, adminEmail);
+        return updateCourtStatus(courtId, request, reviewedByUserId);
     }
 
     @Transactional
     public AdminCourtReviewResponse updateCourtStatus(
             String courtId,
             AdminCourtReviewUpdateRequest request,
-            String adminEmail
+            String reviewedBy
     ) {
+        String reviewedByUserId = resolveReviewedByUserId(reviewedBy);
         String approvalStatus = normalizeStatus(request.getApprovalStatus());
         String venueStatus = switch (approvalStatus) {
             case "approved" -> "active";
@@ -106,7 +108,7 @@ public class AdminCourtReviewService {
         if (pendingChangeRequest != null) {
             String requestId = stringValue(pendingChangeRequest, "id");
             if ("approved".equals(approvalStatus)) {
-                int applied = adminCourtReviewMapper.applyCourtChangeRequest(requestId);
+                int applied = adminCourtReviewMapper.applyCourtChangeRequest(requestId, reviewedByUserId);
                 if (applied == 0) {
                     throw new BusinessException(10004, "修改申请不存在");
                 }
@@ -114,7 +116,7 @@ public class AdminCourtReviewService {
             int reviewed = adminCourtReviewMapper.updateCourtChangeRequestReviewStatus(
                     requestId,
                     approvalStatus,
-                    adminEmail,
+                    reviewedByUserId,
                     request.getReason()
             );
             if (reviewed == 0) {
@@ -127,13 +129,26 @@ public class AdminCourtReviewService {
                 courtId,
                 approvalStatus,
                 venueStatus,
-                adminEmail,
+                reviewedByUserId,
                 request.getReason()
         );
         if (updated == 0) {
             throw new BusinessException(10004, "网球场不存在");
         }
         return toResponse(adminCourtReviewMapper.findCourtById(courtId));
+    }
+
+    private String resolveReviewedByUserId(String reviewedBy) {
+        String normalized = normalizeNullable(reviewedBy);
+        if (normalized == null) {
+            return null;
+        }
+        if (!normalized.contains("@")) {
+            return normalized;
+        }
+        Map<String, Object> user = mobileProfileMapper.findUserByEmail(normalized);
+        String userId = user == null ? null : stringValue(user, "id");
+        return StringUtils.hasText(userId) ? userId : normalized;
     }
 
     private String normalizeStatus(String status) {
@@ -162,6 +177,7 @@ public class AdminCourtReviewService {
         values.put("description", normalizeNullable(request.getDescription()));
         values.put("latitude", request.getLatitude());
         values.put("longitude", request.getLongitude());
+        values.put("map_source", normalizeNullable(request.getMapSource()));
         values.put("surface_type", normalizeNullable(request.getSurfaceType()));
         values.put("has_indoor", request.getHasIndoor());
         values.put("has_outdoor", request.getHasOutdoor());
@@ -261,6 +277,7 @@ public class AdminCourtReviewService {
                 .description(stringValue(row, "description"))
                 .latitude(doubleValue(row.get("latitude")))
                 .longitude(doubleValue(row.get("longitude")))
+                .mapSource(stringValue(row, "map_source"))
                 .surfaceType(stringValue(row, "surface_type"))
                 .indoorOutdoor(stringValue(row, "indoor_outdoor"))
                 .hasIndoor(booleanValue(row.get("has_indoor")))

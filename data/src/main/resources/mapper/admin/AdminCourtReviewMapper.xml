@@ -12,6 +12,7 @@
         c.`contact_phone`,
         c.`latitude`,
         c.`longitude`,
+        c.`map_source`,
         c.`surface_type`,
         c.`indoor_outdoor`,
         c.`has_indoor`,
@@ -64,6 +65,7 @@
                 r.`contact_phone`,
                 r.`latitude`,
                 r.`longitude`,
+                r.`map_source`,
                 r.`surface_type`,
                 r.`indoor_outdoor`,
                 r.`has_indoor`,
@@ -144,6 +146,7 @@
             <if test="values.containsKey('description')">`description` = #{values.description},</if>
             <if test="values.containsKey('latitude')">`latitude` = #{values.latitude},</if>
             <if test="values.containsKey('longitude')">`longitude` = #{values.longitude},</if>
+            <if test="values.containsKey('map_source')">`map_source` = #{values.map_source},</if>
             <if test="values.containsKey('surface_type')">`surface_type` = #{values.surface_type},</if>
             <if test="values.containsKey('indoor_outdoor')">`indoor_outdoor` = #{values.indoor_outdoor},</if>
             <if test="values.containsKey('has_indoor')">`has_indoor` = #{values.has_indoor},</if>
@@ -185,6 +188,7 @@
             c.`description` = r.`description`,
             c.`latitude` = r.`latitude`,
             c.`longitude` = r.`longitude`,
+            c.`map_source` = r.`map_source`,
             c.`surface_type` = r.`surface_type`,
             c.`indoor_outdoor` = r.`indoor_outdoor`,
             c.`has_indoor` = r.`has_indoor`,
@@ -193,7 +197,10 @@
             c.`opening_time` = r.`opening_time`,
             c.`closing_time` = r.`closing_time`,
             c.`approval_status` = 'approved',
-            c.`venue_status` = 'active'
+            c.`venue_status` = 'active',
+            c.`reviewed_by` = #{reviewedBy},
+            c.`reviewed_at` = CURRENT_TIMESTAMP,
+            c.`rejected_reason` = NULL
         WHERE c.`status` = 0
     </update>
 
@@ -211,6 +218,7 @@
             <if test="values.containsKey('description')">`description` = #{values.description},</if>
             <if test="values.containsKey('latitude')">`latitude` = #{values.latitude},</if>
             <if test="values.containsKey('longitude')">`longitude` = #{values.longitude},</if>
+            <if test="values.containsKey('map_source')">`map_source` = #{values.map_source},</if>
             <if test="values.containsKey('surface_type')">`surface_type` = #{values.surface_type},</if>
             <if test="values.containsKey('indoor_outdoor')">`indoor_outdoor` = #{values.indoor_outdoor},</if>
             <if test="values.containsKey('has_indoor')">`has_indoor` = #{values.has_indoor},</if>

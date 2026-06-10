@@ -18,6 +18,13 @@
         LIMIT 1
     </select>
 
+    <select id="findUserByEmail" resultType="map">
+        SELECT *
+        FROM `ir_auth`.`users`
+        WHERE LOWER(`email`) = LOWER(#{email})
+        LIMIT 1
+    </select>
+
     <update id="updateUser">
         UPDATE `ir_auth`.`users`
         <set>
@@ -208,18 +215,25 @@
           ON u.`id` = c.`created_by`
          AND u.`status` = 0
         WHERE c.`status` = 0
-          <if test="country != null and country != ''">
-              AND (c.`country` = #{country} OR c.`country` IS NULL)
-          </if>
-          <if test="city != null and city != ''">
-              AND (c.`city` = #{city} OR c.`city` IS NULL)
-          </if>
           <if test="keyword != null and keyword != ''">
               AND (c.`name` LIKE CONCAT('%', #{keyword}, '%')
-                   OR c.`address` LIKE CONCAT('%', #{keyword}, '%'))
+                   OR c.`address` LIKE CONCAT('%', #{keyword}, '%')
+                   OR c.`city` LIKE CONCAT('%', #{keyword}, '%')
+                   OR c.`province` LIKE CONCAT('%', #{keyword}, '%')
+                   OR c.`surface_type` LIKE CONCAT('%', #{keyword}, '%'))
           </if>
-        ORDER BY c.`venue_status` = 'active' DESC, c.`name`
-        LIMIT 20
+        ORDER BY c.`venue_status` = 'active' DESC,
+                 <if test="city != null and city != ''">
+                     c.`city` = #{city} DESC,
+                 </if>
+                 <if test="province != null and province != ''">
+                     c.`province` = #{province} DESC,
+                 </if>
+                 <if test="country != null and country != ''">
+                     c.`country` = #{country} DESC,
+                 </if>
+                 c.`name`
+        LIMIT 100
     </select>
 
     <select id="findActiveCourtById" resultType="com.irallyin.server.data.domain.CourtDO">
@@ -254,6 +268,7 @@
             <if test="values.containsKey('address')">`address`,</if>
             <if test="values.containsKey('latitude')">`latitude`,</if>
             <if test="values.containsKey('longitude')">`longitude`,</if>
+            <if test="values.containsKey('map_source')">`map_source`,</if>
             <if test="values.containsKey('surface_type')">`surface_type`,</if>
             <if test="values.containsKey('indoor_outdoor')">`indoor_outdoor`,</if>
             <if test="values.containsKey('has_indoor')">`has_indoor`,</if>
@@ -283,6 +298,7 @@
             <if test="values.containsKey('address')">#{values.address},</if>
             <if test="values.containsKey('latitude')">#{values.latitude},</if>
             <if test="values.containsKey('longitude')">#{values.longitude},</if>
+            <if test="values.containsKey('map_source')">#{values.map_source},</if>
             <if test="values.containsKey('surface_type')">#{values.surface_type},</if>
             <if test="values.containsKey('indoor_outdoor')">#{values.indoor_outdoor},</if>
             <if test="values.containsKey('has_indoor')">#{values.has_indoor},</if>
@@ -328,6 +344,7 @@
             <if test="values.containsKey('description')">`description`,</if>
             <if test="values.containsKey('latitude')">`latitude`,</if>
             <if test="values.containsKey('longitude')">`longitude`,</if>
+            <if test="values.containsKey('map_source')">`map_source`,</if>
             <if test="values.containsKey('surface_type')">`surface_type`,</if>
             <if test="values.containsKey('indoor_outdoor')">`indoor_outdoor`,</if>
             <if test="values.containsKey('has_indoor')">`has_indoor`,</if>
@@ -353,6 +370,7 @@
             <if test="values.containsKey('description')">#{values.description},</if>
             <if test="values.containsKey('latitude')">#{values.latitude},</if>
             <if test="values.containsKey('longitude')">#{values.longitude},</if>
+            <if test="values.containsKey('map_source')">#{values.map_source},</if>
             <if test="values.containsKey('surface_type')">#{values.surface_type},</if>
             <if test="values.containsKey('indoor_outdoor')">#{values.indoor_outdoor},</if>
             <if test="values.containsKey('has_indoor')">#{values.has_indoor},</if>

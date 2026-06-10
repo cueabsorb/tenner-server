@@ -42,6 +42,10 @@ public class CourtSubmissionRequest {
 
     private BigDecimal latitude;
     private BigDecimal longitude;
+
+    @Size(max = 40, message = "地图来源不能超过40个字符")
+    private String mapSource;
+
     private String surfaceType;
     private Boolean hasIndoor;
     private Boolean hasOutdoor;

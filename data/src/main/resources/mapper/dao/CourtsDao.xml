@@ -13,6 +13,7 @@
             <if test="_parameter.containsKey('address')">`address`,</if>
             <if test="_parameter.containsKey('latitude')">`latitude`,</if>
             <if test="_parameter.containsKey('longitude')">`longitude`,</if>
+            <if test="_parameter.containsKey('map_source')">`map_source`,</if>
             <if test="_parameter.containsKey('surface_type')">`surface_type`,</if>
             <if test="_parameter.containsKey('indoor_outdoor')">`indoor_outdoor`,</if>
             <if test="_parameter.containsKey('has_indoor')">`has_indoor`,</if>
@@ -40,6 +41,7 @@
             <if test="_parameter.containsKey('address')">#{address},</if>
             <if test="_parameter.containsKey('latitude')">#{latitude},</if>
             <if test="_parameter.containsKey('longitude')">#{longitude},</if>
+            <if test="_parameter.containsKey('map_source')">#{map_source},</if>
             <if test="_parameter.containsKey('surface_type')">#{surface_type},</if>
             <if test="_parameter.containsKey('indoor_outdoor')">#{indoor_outdoor},</if>
             <if test="_parameter.containsKey('has_indoor')">#{has_indoor},</if>
@@ -70,6 +72,7 @@
             <if test="_parameter.containsKey('address')">`address` = #{address},</if>
             <if test="_parameter.containsKey('latitude')">`latitude` = #{latitude},</if>
             <if test="_parameter.containsKey('longitude')">`longitude` = #{longitude},</if>
+            <if test="_parameter.containsKey('map_source')">`map_source` = #{map_source},</if>
             <if test="_parameter.containsKey('surface_type')">`surface_type` = #{surface_type},</if>
             <if test="_parameter.containsKey('indoor_outdoor')">`indoor_outdoor` = #{indoor_outdoor},</if>
             <if test="_parameter.containsKey('has_indoor')">`has_indoor` = #{has_indoor},</if>

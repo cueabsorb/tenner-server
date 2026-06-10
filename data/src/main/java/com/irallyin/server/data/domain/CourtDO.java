@@ -45,6 +45,10 @@ public class CourtDO implements Serializable {
      */
     private Double longitude;
     /**
+     * 地图来源，如 appleMap。
+     */
+    private String mapSource;
+    /**
      * 地面类型，可多选: hard=硬地, clay=红土, grass=草地, sand_grass=沙草, carpet=地毯。
      */
     private String surfaceType;

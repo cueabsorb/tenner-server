@@ -22,6 +22,7 @@ public class HabitCourtResponse {
     private Boolean isPrimary;
     private Double latitude;
     private Double longitude;
+    private String mapSource;
     private String surfaceType;
     private String indoorOutdoor;
     private Boolean hasIndoor;
