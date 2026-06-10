@@ -22,6 +22,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class MobileProfileService {
     private static final String DEFAULT_INTRO = "因热爱而相聚，为梦想而挥拍";
+    private static final String MOBILE_ADMIN_EMAIL = "tianfengzhang1984@gmail.com";
 
     private final MobileProfileMapper mobileProfileMapper;
     private final ProfileContentSafetyService contentSafetyService;
@@ -66,6 +67,8 @@ public class MobileProfileService {
                 .followingCount(mobileProfileMapper.countFollowing(userId))
                 .followerCount(mobileProfileMapper.countFollowers(userId))
                 .receivedLikeCount(mobileProfileMapper.sumReceivedLikes(userId))
+                .racketCount(mobileProfileMapper.countRacketsByUserId(userId))
+                .shoeCount(mobileProfileMapper.countShoesByUserId(userId))
                 .build();
     }
 
@@ -225,6 +228,63 @@ public class MobileProfileService {
                 .toList();
     }
 
+    public List<RacketCatalogResponse> listRacketCatalog() {
+        return mobileProfileMapper.listRacketCatalog()
+                .stream()
+                .map(this::toRacketCatalogResponse)
+                .toList();
+    }
+
+    @Transactional
+    public RacketCatalogResponse createRacketCatalog(String userId, RacketCatalogCreateRequest request) {
+        requireAdmin(userId);
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("id", UUID.randomUUID().toString());
+        values.put("brand", normalize(request.getBrand()));
+        values.put("model", normalize(request.getModel()));
+        values.put("unstrung_weight_gram", positiveIntegerOrNull(request.getUnstrungWeightGram(), "空拍质量"));
+        values.put("string_pattern", normalizeNullable(request.getStringPattern()));
+        values.put("balance_point_mm", positiveIntegerOrNull(request.getBalancePointMm(), "平衡点"));
+        values.put("length_inch", positiveDoubleOrNull(request.getLengthInch(), "长度"));
+        values.put("grip_size", normalizeNullable(request.getGripSize()));
+        values.put("release_year", positiveIntegerOrNull(request.getReleaseYear(), "年份"));
+        values.put("image_url", normalizeNullable(request.getImageUrl()));
+        try {
+            mobileProfileMapper.insertRacketCatalog(values);
+        } catch (DuplicateKeyException e) {
+            throw new BusinessException(10001, "该球拍基础数据已存在");
+        }
+        return toRacketCatalogResponse(values);
+    }
+
+    @Transactional
+    public UserRacketAddResponse addUserRacket(String userId, UserRacketAddRequest request) {
+        requireUser(userId);
+        Map<String, Object> catalog = mobileProfileMapper.findRacketCatalogById(request.getCatalogId());
+        if (catalog == null) {
+            throw new BusinessException(10004, "球拍不存在");
+        }
+        String bagId = ensureEquipmentBag(userId);
+        String racketId = UUID.randomUUID().toString();
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("id", racketId);
+        values.put("bag_id", bagId);
+        values.put("brand", rowValue(catalog, "brand"));
+        values.put("model", rowValue(catalog, "model"));
+        values.put("grip_size", rowValue(catalog, "grip_size"));
+        values.put("weight_gram", rowValue(catalog, "unstrung_weight_gram"));
+        values.put("image_url", rowValue(catalog, "image_url"));
+        values.put("is_primary", mobileProfileMapper.countRacketsByUserId(userId) == 0 ? 1 : 0);
+        values.put("display_order", 0);
+        mobileProfileMapper.insertUserRacket(values);
+        writeEditLog(userId, "racket");
+        return UserRacketAddResponse.builder()
+                .racketId(racketId)
+                .racketCount(mobileProfileMapper.countRacketsByUserId(userId))
+                .message("球拍已添加到我的装备")
+                .build();
+    }
+
     public HabitCourtResponse getCourt(String userId, String courtId) {
         CourtDO court = mobileProfileMapper.findActiveCourtById(courtId);
         if (court == null) {
@@ -371,6 +431,14 @@ public class MobileProfileService {
         return user;
     }
 
+    private void requireAdmin(String userId) {
+        Map<String, Object> user = requireUser(userId);
+        String email = (String) rowValue(user, "email");
+        if (!StringUtils.hasText(email) || !MOBILE_ADMIN_EMAIL.equalsIgnoreCase(email)) {
+            throw new BusinessException(10003, "只有管理员可以维护球拍基础数据");
+        }
+    }
+
     private void updateUser(String userId, Map<String, Object> values) {
         requireUser(userId);
         mobileProfileMapper.updateUser(userId, values);
@@ -444,6 +512,31 @@ public class MobileProfileService {
         insertValues.put("status", 0);
         mobileProfileMapper.insertPlayingHabit(insertValues);
         return id;
+    }
+
+    private String ensureEquipmentBag(String userId) {
+        Map<String, Object> bag = mobileProfileMapper.findEquipmentBagByUserId(userId);
+        if (bag != null) {
+            return (String) rowValue(bag, "id");
+        }
+        String id = UUID.randomUUID().toString();
+        mobileProfileMapper.insertEquipmentBag(id, userId);
+        return id;
+    }
+
+    private RacketCatalogResponse toRacketCatalogResponse(Map<String, Object> row) {
+        return RacketCatalogResponse.builder()
+                .id((String) rowValue(row, "id"))
+                .brand((String) rowValue(row, "brand"))
+                .model((String) rowValue(row, "model"))
+                .unstrungWeightGram(integerValue(rowValue(row, "unstrung_weight_gram")))
+                .stringPattern((String) rowValue(row, "string_pattern"))
+                .balancePointMm(integerValue(rowValue(row, "balance_point_mm")))
+                .lengthInch(numberAsDouble(rowValue(row, "length_inch"), null))
+                .gripSize((String) rowValue(row, "grip_size"))
+                .releaseYear(integerValue(rowValue(row, "release_year")))
+                .imageUrl((String) rowValue(row, "image_url"))
+                .build();
     }
 
     private List<HabitCourtResponse> findHabitCourts(String userId) {
@@ -729,6 +822,26 @@ public class MobileProfileService {
             return number.intValue();
         }
         return null;
+    }
+
+    private Integer positiveIntegerOrNull(Integer value, String fieldName) {
+        if (value == null) {
+            return null;
+        }
+        if (value <= 0) {
+            throw new BusinessException(10001, fieldName + "必须大于0");
+        }
+        return value;
+    }
+
+    private Double positiveDoubleOrNull(Double value, String fieldName) {
+        if (value == null) {
+            return null;
+        }
+        if (value <= 0) {
+            throw new BusinessException(10001, fieldName + "必须大于0");
+        }
+        return value;
     }
 
     private LocalTime localTimeValue(Object value) {

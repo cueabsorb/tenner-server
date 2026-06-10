@@ -519,4 +519,85 @@
           AND `status` = 0
     </select>
 
+    <select id="countRacketsByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_profile`.`equipment_bags` b
+        JOIN `ir_profile`.`rackets` r
+          ON r.`bag_id` = b.`id`
+         AND r.`status` = 0
+        WHERE b.`user_id` = #{userId}
+          AND b.`status` = 0
+    </select>
+
+    <select id="countShoesByUserId" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_profile`.`equipment_bags` b
+        JOIN `ir_profile`.`tennis_shoes` s
+          ON s.`bag_id` = b.`id`
+         AND s.`status` = 0
+        WHERE b.`user_id` = #{userId}
+          AND b.`status` = 0
+    </select>
+
+    <select id="findEquipmentBagByUserId" resultType="map">
+        SELECT *
+        FROM `ir_profile`.`equipment_bags`
+        WHERE `user_id` = #{userId}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertEquipmentBag">
+        INSERT INTO `ir_profile`.`equipment_bags` (`id`, `user_id`, `status`)
+        VALUES (#{id}, #{userId}, 0)
+    </insert>
+
+    <select id="listRacketCatalog" resultType="map">
+        SELECT `id`,
+               `brand`,
+               `model`,
+               `unstrung_weight_gram`,
+               `string_pattern`,
+               `balance_point_mm`,
+               `length_inch`,
+               `grip_size`,
+               `release_year`,
+               `image_url`
+        FROM `ir_profile`.`racket_catalog`
+        WHERE `status` = 0
+        ORDER BY `brand`, `model`, `release_year` DESC, `grip_size`
+        LIMIT 500
+    </select>
+
+    <select id="findRacketCatalogById" resultType="map">
+        SELECT `id`,
+               `brand`,
+               `model`,
+               `unstrung_weight_gram`,
+               `string_pattern`,
+               `balance_point_mm`,
+               `length_inch`,
+               `grip_size`,
+               `release_year`,
+               `image_url`
+        FROM `ir_profile`.`racket_catalog`
+        WHERE `id` = #{catalogId}
+          AND `status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertRacketCatalog">
+        INSERT INTO `ir_profile`.`racket_catalog`
+        (`id`, `brand`, `model`, `unstrung_weight_gram`, `string_pattern`, `balance_point_mm`, `length_inch`, `grip_size`, `release_year`, `image_url`, `status`)
+        VALUES
+        (#{values.id}, #{values.brand}, #{values.model}, #{values.unstrung_weight_gram}, #{values.string_pattern}, #{values.balance_point_mm}, #{values.length_inch}, #{values.grip_size}, #{values.release_year}, #{values.image_url}, 0)
+    </insert>
+
+    <insert id="insertUserRacket">
+        INSERT INTO `ir_profile`.`rackets`
+        (`id`, `bag_id`, `brand`, `model`, `grip_size`, `weight_gram`, `head_size_sq_in`, `image_url`, `is_primary`, `display_order`, `status`)
+        VALUES
+        (#{values.id}, #{values.bag_id}, #{values.brand}, #{values.model}, #{values.grip_size}, #{values.weight_gram}, NULL, #{values.image_url}, #{values.is_primary}, #{values.display_order}, 0)
+    </insert>
+
 </mapper>

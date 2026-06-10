@@ -34,4 +34,6 @@ public class MobileProfileResponse {
     private Integer followingCount;
     private Integer followerCount;
     private Integer receivedLikeCount;
+    private Integer racketCount;
+    private Integer shoeCount;
 }

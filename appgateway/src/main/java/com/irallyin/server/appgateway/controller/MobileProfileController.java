@@ -194,6 +194,39 @@ public class MobileProfileController {
         }
     }
 
+    @GetMapping("/racket-catalog")
+    @Operation(summary = "获取球拍基础数据")
+    public ApiResponse<List<RacketCatalogResponse>> listRacketCatalog() {
+        try {
+            return ApiResponse.success(mobileProfileService.listRacketCatalog());
+        } catch (Exception e) {
+            log.error("Failed to list racket catalog: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/equipment/rackets")
+    @Operation(summary = "添加我的球拍装备")
+    public ApiResponse<UserRacketAddResponse> addUserRacket(Authentication authentication, @Valid @RequestBody UserRacketAddRequest request) {
+        try {
+            return ApiResponse.success(mobileProfileService.addUserRacket(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to add user racket: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/admin/racket-catalog")
+    @Operation(summary = "管理员添加球拍基础数据")
+    public ApiResponse<RacketCatalogResponse> createRacketCatalog(Authentication authentication, @Valid @RequestBody RacketCatalogCreateRequest request) {
+        try {
+            return ApiResponse.success(mobileProfileService.createRacketCatalog(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to create racket catalog: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @GetMapping("/courts/{courtId}")
     @Operation(summary = "获取网球场数据库详情")
     public ApiResponse<HabitCourtResponse> getCourt(Authentication authentication, @PathVariable String courtId) {

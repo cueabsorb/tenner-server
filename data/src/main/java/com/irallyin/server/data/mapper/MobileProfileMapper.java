@@ -91,4 +91,20 @@ public interface MobileProfileMapper {
     int countFollowers(@Param("userId") String userId);
 
     int sumReceivedLikes(@Param("userId") String userId);
+
+    int countRacketsByUserId(@Param("userId") String userId);
+
+    int countShoesByUserId(@Param("userId") String userId);
+
+    Map<String, Object> findEquipmentBagByUserId(@Param("userId") String userId);
+
+    int insertEquipmentBag(@Param("id") String id, @Param("userId") String userId);
+
+    List<Map<String, Object>> listRacketCatalog();
+
+    Map<String, Object> findRacketCatalogById(@Param("catalogId") String catalogId);
+
+    int insertRacketCatalog(@Param("values") Map<String, Object> values);
+
+    int insertUserRacket(@Param("values") Map<String, Object> values);
 }
