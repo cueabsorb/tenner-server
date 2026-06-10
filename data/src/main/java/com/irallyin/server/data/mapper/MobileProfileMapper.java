@@ -51,6 +51,12 @@ public interface MobileProfileMapper {
 
     int insertCourt(@Param("values") Map<String, Object> values);
 
+    int insertCourtLike(@Param("id") String id, @Param("courtId") String courtId, @Param("userId") String userId);
+
+    int countCourtLikes(@Param("courtId") String courtId);
+
+    int countCourtLikeByUser(@Param("courtId") String courtId, @Param("userId") String userId);
+
     int countPendingCourtChangeRequest(@Param("courtId") String courtId);
 
     int insertCourtChangeRequest(@Param("values") Map<String, Object> values);

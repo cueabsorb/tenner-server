@@ -225,12 +225,23 @@ public class MobileProfileService {
                 .toList();
     }
 
-    public HabitCourtResponse getCourt(String courtId) {
+    public HabitCourtResponse getCourt(String userId, String courtId) {
         CourtDO court = mobileProfileMapper.findActiveCourtById(courtId);
         if (court == null) {
             throw new BusinessException(10004, "网球场不存在");
         }
-        return toHabitCourtResponse(court);
+        return toHabitCourtResponse(court, userId);
+    }
+
+    @Transactional
+    public CourtLikeResponse likeCourt(String userId, String courtId) {
+        requireUser(userId);
+        CourtDO court = mobileProfileMapper.findActiveCourtById(courtId);
+        if (court == null) {
+            throw new BusinessException(10004, "网球场不存在");
+        }
+        mobileProfileMapper.insertCourtLike(UUID.randomUUID().toString(), courtId, userId);
+        return courtLikeResponse(courtId, userId);
     }
 
     @Transactional
@@ -474,10 +485,16 @@ public class MobileProfileService {
                 .outdoorCourtCount(integerValue(rowValue(row, "outdoor_court_count")))
                 .openingTime(localTimeValue(rowValue(row, "opening_time")))
                 .closingTime(localTimeValue(rowValue(row, "closing_time")))
+                .likeCount(0)
+                .likedByMe(false)
                 .build();
     }
 
     private HabitCourtResponse toHabitCourtResponse(CourtDO court) {
+        return toHabitCourtResponse(court, null);
+    }
+
+    private HabitCourtResponse toHabitCourtResponse(CourtDO court, String userId) {
         return HabitCourtResponse.builder()
                 .id(court.getId())
                 .name(court.getName())
@@ -504,6 +521,16 @@ public class MobileProfileService {
                 .outdoorCourtCount(court.getOutdoorCourtCount())
                 .openingTime(court.getOpeningTime())
                 .closingTime(court.getClosingTime())
+                .likeCount(mobileProfileMapper.countCourtLikes(court.getId()))
+                .likedByMe(StringUtils.hasText(userId) && mobileProfileMapper.countCourtLikeByUser(court.getId(), userId) > 0)
+                .build();
+    }
+
+    private CourtLikeResponse courtLikeResponse(String courtId, String userId) {
+        return CourtLikeResponse.builder()
+                .courtId(courtId)
+                .likeCount(mobileProfileMapper.countCourtLikes(courtId))
+                .likedByMe(StringUtils.hasText(userId) && mobileProfileMapper.countCourtLikeByUser(courtId, userId) > 0)
                 .build();
     }
 

@@ -196,11 +196,25 @@ public class MobileProfileController {
 
     @GetMapping("/courts/{courtId}")
     @Operation(summary = "获取网球场数据库详情")
-    public ApiResponse<HabitCourtResponse> getCourt(@PathVariable String courtId) {
+    public ApiResponse<HabitCourtResponse> getCourt(Authentication authentication, @PathVariable String courtId) {
         try {
-            return ApiResponse.success(mobileProfileService.getCourt(courtId));
+            String userId = authentication != null && authentication.getPrincipal() instanceof UUID uuid
+                    ? uuid.toString()
+                    : null;
+            return ApiResponse.success(mobileProfileService.getCourt(userId, courtId));
         } catch (Exception e) {
             log.error("Failed to get court detail: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/courts/{courtId}/likes")
+    @Operation(summary = "点赞网球场")
+    public ApiResponse<CourtLikeResponse> likeCourt(Authentication authentication, @PathVariable String courtId) {
+        try {
+            return ApiResponse.success(mobileProfileService.likeCourt(currentUserId(authentication), courtId));
+        } catch (Exception e) {
+            log.error("Failed to like court: {}", e.getMessage(), e);
             throw e;
         }
     }

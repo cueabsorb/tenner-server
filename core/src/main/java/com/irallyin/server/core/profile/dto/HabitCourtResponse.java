@@ -33,4 +33,6 @@ public class HabitCourtResponse {
     private Integer outdoorCourtCount;
     private LocalTime openingTime;
     private LocalTime closingTime;
+    private Integer likeCount;
+    private Boolean likedByMe;
 }

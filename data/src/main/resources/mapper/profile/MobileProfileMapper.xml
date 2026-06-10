@@ -355,6 +355,26 @@
         </trim>
     </insert>
 
+    <insert id="insertCourtLike">
+        INSERT IGNORE INTO `ir_profile`.`court_likes` (`id`, `court_id`, `user_id`, `status`)
+        VALUES (#{id}, #{courtId}, #{userId}, 0)
+    </insert>
+
+    <select id="countCourtLikes" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_profile`.`court_likes`
+        WHERE `court_id` = #{courtId}
+          AND `status` = 0
+    </select>
+
+    <select id="countCourtLikeByUser" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_profile`.`court_likes`
+        WHERE `court_id` = #{courtId}
+          AND `user_id` = #{userId}
+          AND `status` = 0
+    </select>
+
     <select id="countPendingCourtChangeRequest" resultType="int">
         SELECT COUNT(*)
         FROM `ir_profile`.`court_change_requests`
