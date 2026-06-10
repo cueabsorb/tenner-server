@@ -183,6 +183,17 @@ public class MobileProfileController {
         }
     }
 
+    @GetMapping("/users/search")
+    @Operation(summary = "按名称搜索用户")
+    public ApiResponse<List<UserSearchResponse>> searchUsers(@RequestParam(required = false) String keyword) {
+        try {
+            return ApiResponse.success(mobileProfileService.searchUsers(keyword));
+        } catch (Exception e) {
+            log.error("Failed to search users: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @GetMapping("/courts/{courtId}")
     @Operation(summary = "获取网球场数据库详情")
     public ApiResponse<HabitCourtResponse> getCourt(@PathVariable String courtId) {

@@ -238,6 +238,39 @@
         LIMIT 100
     </select>
 
+    <select id="searchUsers" resultType="map">
+        SELECT u.`id`,
+               u.`display_name`,
+               u.`avatar_url`,
+               u.`gender`,
+               u.`ntrp_rating`,
+               u.`country`,
+               u.`province`,
+               u.`city`,
+               u.`district`,
+               c.`name` AS court_name,
+               hc.`is_primary`
+        FROM `ir_auth`.`users` u
+        LEFT JOIN `ir_profile`.`playing_habits` ph
+          ON ph.`user_id` = u.`id`
+         AND ph.`status` = 0
+        LEFT JOIN `ir_profile`.`habit_courts` hc
+          ON hc.`habit_id` = ph.`id`
+         AND hc.`status` = 0
+        LEFT JOIN `ir_profile`.`courts` c
+          ON c.`id` = hc.`court_id`
+         AND c.`status` = 0
+        WHERE u.`deleted_at` IS NULL
+          AND u.`status` = 0
+          AND u.`display_name` IS NOT NULL
+          AND u.`display_name` != ''
+          AND u.`display_name` LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY u.`display_name`,
+                 hc.`is_primary` DESC,
+                 c.`name`
+        LIMIT 120
+    </select>
+
     <select id="findActiveCourtById" resultType="com.irallyin.server.data.domain.CourtDO">
         SELECT c.*,
                u.`display_name` AS creator_name

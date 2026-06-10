@@ -185,6 +185,45 @@ public class MobileProfileService {
                 .toList();
     }
 
+    public List<UserSearchResponse> searchUsers(String keyword) {
+        String normalizedKeyword = normalizeNullable(keyword);
+        if (!StringUtils.hasText(normalizedKeyword)) {
+            return List.of();
+        }
+
+        Map<String, UserSearchResponse.UserSearchResponseBuilder> builders = new LinkedHashMap<>();
+        Map<String, List<String>> courtNames = new LinkedHashMap<>();
+        for (Map<String, Object> row : mobileProfileMapper.searchUsers(normalizedKeyword)) {
+            String userId = (String) rowValue(row, "id");
+            if (!StringUtils.hasText(userId)) {
+                continue;
+            }
+            builders.computeIfAbsent(userId, ignored -> UserSearchResponse.builder()
+                    .id(userId)
+                    .displayName((String) rowValue(row, "display_name"))
+                    .avatarUrl((String) rowValue(row, "avatar_url"))
+                    .gender((String) rowValue(row, "gender"))
+                    .ntrpRating(numberAsDouble(rowValue(row, "ntrp_rating"), null))
+                    .region(regionText(row))
+            );
+
+            String courtName = (String) rowValue(row, "court_name");
+            if (StringUtils.hasText(courtName)) {
+                List<String> names = courtNames.computeIfAbsent(userId, ignored -> new ArrayList<>());
+                if (names.size() < 3 && !names.contains(courtName)) {
+                    names.add(courtName);
+                }
+            }
+        }
+
+        return builders.entrySet()
+                .stream()
+                .map(entry -> entry.getValue()
+                        .habitCourts(courtNames.getOrDefault(entry.getKey(), List.of()))
+                        .build())
+                .toList();
+    }
+
     public HabitCourtResponse getCourt(String courtId) {
         CourtDO court = mobileProfileMapper.findActiveCourtById(courtId);
         if (court == null) {
@@ -465,6 +504,16 @@ public class MobileProfileService {
                 .openingTime(court.getOpeningTime())
                 .closingTime(court.getClosingTime())
                 .build();
+    }
+
+    private String regionText(Map<String, Object> row) {
+        return List.of("province", "city", "district")
+                .stream()
+                .map(key -> (String) rowValue(row, key))
+                .filter(StringUtils::hasText)
+                .distinct()
+                .reduce((left, right) -> left + " · " + right)
+                .orElse(null);
     }
 
     private Map<String, Object> courtValues(CourtSubmissionRequest request) {

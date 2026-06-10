@@ -43,6 +43,8 @@ public interface MobileProfileMapper {
             @Param("keyword") String keyword
     );
 
+    List<Map<String, Object>> searchUsers(@Param("keyword") String keyword);
+
     CourtDO findActiveCourtById(@Param("courtId") String courtId);
 
     CourtDO findActiveCourtByName(@Param("name") String name);
