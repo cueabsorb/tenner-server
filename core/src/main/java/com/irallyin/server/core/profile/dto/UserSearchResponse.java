@@ -15,4 +15,6 @@ public class UserSearchResponse {
     private Double ntrpRating;
     private String region;
     private List<String> habitCourts;
+    private Integer followingCount;
+    private Integer followerCount;
 }

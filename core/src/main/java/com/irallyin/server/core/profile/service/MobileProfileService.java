@@ -219,14 +219,26 @@ public class MobileProfileService {
     }
 
     public List<UserSearchResponse> searchUsers(String keyword) {
+        return searchUsers(keyword, null, false, 100);
+    }
+
+    public List<UserSearchResponse> searchUsers(String keyword, String currentUserId, boolean followingOnly, Integer limit) {
         String normalizedKeyword = normalizeNullable(keyword);
-        if (!StringUtils.hasText(normalizedKeyword)) {
+        String normalizedCurrentUserId = normalizeNullable(currentUserId);
+        if (!StringUtils.hasText(normalizedKeyword) && !followingOnly) {
             return List.of();
         }
+        int safeLimit = Math.max(1, Math.min(limit == null ? 100 : limit, 200));
+        int rowLimit = safeLimit * 3;
 
         Map<String, UserSearchResponse.UserSearchResponseBuilder> builders = new LinkedHashMap<>();
         Map<String, List<String>> courtNames = new LinkedHashMap<>();
-        for (Map<String, Object> row : mobileProfileMapper.searchUsers(normalizedKeyword)) {
+        for (Map<String, Object> row : mobileProfileMapper.searchUsers(
+                normalizedKeyword,
+                normalizedCurrentUserId,
+                followingOnly,
+                rowLimit
+        )) {
             String userId = (String) rowValue(row, "id");
             if (!StringUtils.hasText(userId)) {
                 continue;
@@ -238,6 +250,8 @@ public class MobileProfileService {
                     .gender((String) rowValue(row, "gender"))
                     .ntrpRating(numberAsDouble(rowValue(row, "ntrp_rating"), null))
                     .region(regionText(row))
+                    .followingCount(integerValue(rowValue(row, "following_count")))
+                    .followerCount(integerValue(rowValue(row, "follower_count")))
             );
 
             String courtName = (String) rowValue(row, "court_name");
@@ -251,7 +265,7 @@ public class MobileProfileService {
 
         return builders.entrySet()
                 .stream()
-                .limit(100)
+                .limit(safeLimit)
                 .map(entry -> entry.getValue()
                         .habitCourts(courtNames.getOrDefault(entry.getKey(), List.of()))
                         .build())

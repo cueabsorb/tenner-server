@@ -59,7 +59,12 @@ public interface MobileProfileMapper {
             @Param("keyword") String keyword
     );
 
-    List<Map<String, Object>> searchUsers(@Param("keyword") String keyword);
+    List<Map<String, Object>> searchUsers(
+            @Param("keyword") String keyword,
+            @Param("currentUserId") String currentUserId,
+            @Param("followingOnly") boolean followingOnly,
+            @Param("rowLimit") int rowLimit
+    );
 
     CourtDO findActiveCourtById(@Param("courtId") String courtId);
 

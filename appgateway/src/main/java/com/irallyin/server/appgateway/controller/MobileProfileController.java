@@ -210,9 +210,19 @@ public class MobileProfileController {
 
     @GetMapping("/users/search")
     @Operation(summary = "按名称搜索用户")
-    public ApiResponse<List<UserSearchResponse>> searchUsers(@RequestParam(required = false) String keyword) {
+    public ApiResponse<List<UserSearchResponse>> searchUsers(
+            Authentication authentication,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false, defaultValue = "false") boolean followingOnly,
+            @RequestParam(required = false, defaultValue = "100") Integer limit
+    ) {
         try {
-            return ApiResponse.success(mobileProfileService.searchUsers(keyword));
+            return ApiResponse.success(mobileProfileService.searchUsers(
+                    keyword,
+                    currentUserId(authentication),
+                    followingOnly,
+                    limit
+            ));
         } catch (Exception e) {
             log.error("Failed to search users: {}", e.getMessage(), e);
             throw e;

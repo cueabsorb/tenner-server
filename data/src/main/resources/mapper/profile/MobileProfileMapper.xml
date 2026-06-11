@@ -387,9 +387,23 @@
                u.`province`,
                u.`city`,
                u.`district`,
+               (SELECT COUNT(*)
+                FROM `ir_activity`.`player_relationship_edges` fre
+                WHERE fre.`user_id` = u.`id`
+                  AND fre.`status` = 0) AS following_count,
+               (SELECT COUNT(*)
+                FROM `ir_activity`.`player_relationship_edges` fre
+                WHERE fre.`peer_user_id` = u.`id`
+                  AND fre.`status` = 0) AS follower_count,
                c.`name` AS court_name,
                hc.`is_primary`
         FROM `ir_auth`.`users` u
+        <if test="followingOnly">
+        INNER JOIN `ir_activity`.`player_relationship_edges` fe
+          ON fe.`peer_user_id` = u.`id`
+         AND fe.`user_id` = #{currentUserId}
+         AND fe.`status` = 0
+        </if>
         LEFT JOIN `ir_profile`.`playing_habits` ph
           ON ph.`user_id` = u.`id`
          AND ph.`status` = 0
@@ -403,11 +417,14 @@
           AND u.`status` = 0
           AND u.`display_name` IS NOT NULL
           AND u.`display_name` != ''
+          AND u.`id` != #{currentUserId}
+          <if test="keyword != null and keyword != ''">
           AND u.`display_name` LIKE CONCAT('%', #{keyword}, '%')
+          </if>
         ORDER BY u.`display_name`,
                  hc.`is_primary` DESC,
                  c.`name`
-        LIMIT 300
+        LIMIT #{rowLimit}
     </select>
 
     <select id="findActiveCourtById" resultType="com.irallyin.server.data.domain.CourtDO">
