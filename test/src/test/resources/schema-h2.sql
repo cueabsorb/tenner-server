@@ -58,6 +58,8 @@ CREATE TABLE user_profile_permission_settings (
     birthday_visible         BOOLEAN         NOT NULL DEFAULT FALSE,
     region_visible           BOOLEAN         NOT NULL DEFAULT FALSE,
     habit_courts_visible     BOOLEAN         NOT NULL DEFAULT FALSE,
+    following_list_visible   BOOLEAN         NOT NULL DEFAULT FALSE,
+    follower_list_visible    BOOLEAN         NOT NULL DEFAULT FALSE,
     status                   TINYINT         NOT NULL DEFAULT 0,
     created_at               TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at               TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -16,4 +16,8 @@ public class ProfilePermissionSettingsUpdateRequest {
 
     @NotNull(message = "常去球场显示设置不能为空")
     private Boolean habitCourtsVisible;
+
+    private Boolean followingListVisible;
+
+    private Boolean followerListVisible;
 }

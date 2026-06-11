@@ -51,7 +51,9 @@
         SELECT `gender_visible`,
                `birthday_visible`,
                `region_visible`,
-               `habit_courts_visible`
+               `habit_courts_visible`,
+               `following_list_visible`,
+               `follower_list_visible`
         FROM `ir_profile`.`user_profile_permission_settings`
         WHERE `user_id` = #{userId}
           AND `status` = 0
@@ -60,7 +62,7 @@
 
     <insert id="upsertProfilePermissionSettings">
         INSERT INTO `ir_profile`.`user_profile_permission_settings`
-        (`id`, `user_id`, `gender_visible`, `birthday_visible`, `region_visible`, `habit_courts_visible`, `status`)
+        (`id`, `user_id`, `gender_visible`, `birthday_visible`, `region_visible`, `habit_courts_visible`, `following_list_visible`, `follower_list_visible`, `status`)
         VALUES
         (
             #{id},
@@ -69,6 +71,8 @@
             #{values.birthday_visible},
             #{values.region_visible},
             #{values.habit_courts_visible},
+            #{values.following_list_visible},
+            #{values.follower_list_visible},
             0
         )
         ON DUPLICATE KEY UPDATE
@@ -76,6 +80,8 @@
             `birthday_visible` = VALUES(`birthday_visible`),
             `region_visible` = VALUES(`region_visible`),
             `habit_courts_visible` = VALUES(`habit_courts_visible`),
+            `following_list_visible` = VALUES(`following_list_visible`),
+            `follower_list_visible` = VALUES(`follower_list_visible`),
             `status` = 0,
             `updated_at` = CURRENT_TIMESTAMP
     </insert>

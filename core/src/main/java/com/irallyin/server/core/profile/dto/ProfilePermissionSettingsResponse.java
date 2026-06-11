@@ -10,4 +10,6 @@ public class ProfilePermissionSettingsResponse {
     private Boolean birthdayVisible;
     private Boolean regionVisible;
     private Boolean habitCourtsVisible;
+    private Boolean followingListVisible;
+    private Boolean followerListVisible;
 }

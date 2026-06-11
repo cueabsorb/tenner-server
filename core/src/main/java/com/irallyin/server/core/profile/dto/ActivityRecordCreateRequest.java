@@ -18,6 +18,5 @@ public class ActivityRecordCreateRequest {
     @Size(max = 100, message = "球友备注不能超过100个字符")
     private String partnerName;
 
-    @NotBlank(message = "球场不能为空")
     private String courtId;
 }

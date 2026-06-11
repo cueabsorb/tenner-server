@@ -97,6 +97,8 @@ public class MobileProfileService {
         values.put("birthday_visible", Boolean.TRUE.equals(request.getBirthdayVisible()) ? 1 : 0);
         values.put("region_visible", Boolean.TRUE.equals(request.getRegionVisible()) ? 1 : 0);
         values.put("habit_courts_visible", Boolean.TRUE.equals(request.getHabitCourtsVisible()) ? 1 : 0);
+        values.put("following_list_visible", Boolean.TRUE.equals(request.getFollowingListVisible()) ? 1 : 0);
+        values.put("follower_list_visible", Boolean.TRUE.equals(request.getFollowerListVisible()) ? 1 : 0);
         mobileProfileMapper.upsertProfilePermissionSettings(UUID.randomUUID().toString(), userId, values);
         writeEditLog(userId, "profile_permission_settings");
         return getPermissionSettings(userId);
@@ -323,9 +325,13 @@ public class MobileProfileService {
     @Transactional
     public ActivityRecordResponse createActivityRecord(String userId, ActivityRecordCreateRequest request) {
         Map<String, Object> user = requireUser(userId);
-        CourtDO court = mobileProfileMapper.findActiveCourtById(request.getCourtId());
-        if (court == null) {
-            throw new BusinessException(10004, "球场不存在");
+        String courtId = normalizeNullable(request.getCourtId());
+        CourtDO court = null;
+        if (StringUtils.hasText(courtId)) {
+            court = mobileProfileMapper.findActiveCourtById(courtId);
+            if (court == null) {
+                throw new BusinessException(10004, "球场不存在");
+            }
         }
 
         LocalDateTime startedAt = parseStartedAt(request.getStartedAt());
@@ -349,8 +355,8 @@ public class MobileProfileService {
         values.put("started_at", startedAt);
         values.put("ended_at", startedAt.plusMinutes(durationMinutes));
         values.put("duration_minutes", durationMinutes);
-        values.put("court_id", court.getId());
-        values.put("court_name", court.getName());
+        values.put("court_id", court == null ? null : court.getId());
+        values.put("court_name", court == null ? null : court.getName());
         values.put("notes", StringUtils.hasText(partnerName) ? "跟 " + partnerName : null);
         values.put("privacy_level", "matchedPlayers");
         mobileProfileMapper.insertPlaySession(values);
@@ -361,8 +367,8 @@ public class MobileProfileService {
             created = new LinkedHashMap<>(values);
             created.put("owner_name", rowValue(user, "display_name"));
             created.put("owner_avatar_url", rowValue(user, "avatar_url"));
-            created.put("city", court.getCity());
-            created.put("address", court.getAddress());
+            created.put("city", court == null ? null : court.getCity());
+            created.put("address", court == null ? null : court.getAddress());
         }
         return toActivityRecordResponse(created);
     }
@@ -997,6 +1003,8 @@ public class MobileProfileService {
                 .birthdayVisible(row != null && booleanValue(rowValue(row, "birthday_visible")))
                 .regionVisible(row != null && booleanValue(rowValue(row, "region_visible")))
                 .habitCourtsVisible(row != null && booleanValue(rowValue(row, "habit_courts_visible")))
+                .followingListVisible(row != null && booleanValue(rowValue(row, "following_list_visible")))
+                .followerListVisible(row != null && booleanValue(rowValue(row, "follower_list_visible")))
                 .build();
     }
 
