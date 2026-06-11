@@ -3,6 +3,7 @@ package com.irallyin.server.common.exception;
 import com.irallyin.server.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 import java.net.ConnectException;
 import java.net.SocketTimeoutException;
@@ -69,8 +71,24 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error(10005, message));
     }
 
+    @ExceptionHandler({AsyncRequestNotUsableException.class, ClientAbortException.class})
+    public void handleClientAbort(Exception e, HttpServletRequest request) {
+        log.debug("Client disconnected before response completed on {} {}: {}",
+                request.getMethod(),
+                request.getRequestURI(),
+                e.getMessage());
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e, HttpServletRequest request) {
+        if (isClientAbort(e)) {
+            log.debug("Client disconnected before response completed on {} {}: {}",
+                    request.getMethod(),
+                    request.getRequestURI(),
+                    e.getMessage());
+            return null;
+        }
+
         String clientMessage = resolveClientMessage(e);
         log.error("Unexpected error on {} {}: rawError={}({}) -> clientMessage={}",
                 request.getMethod(),
@@ -101,6 +119,25 @@ public class GlobalExceptionHandler {
             return "服务暂时不可用：外部服务连接异常";
         }
         return "服务器内部错误：" + error.getClass().getSimpleName();
+    }
+
+    private boolean isClientAbort(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof AsyncRequestNotUsableException
+                    || current instanceof ClientAbortException) {
+                return true;
+            }
+            String message = current.getMessage();
+            if (message != null
+                    && (message.contains("Connection reset by peer")
+                    || message.contains("Broken pipe")
+                    || message.contains("ServletOutputStream failed to flush"))) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     private Throwable rootCause(Throwable error) {
