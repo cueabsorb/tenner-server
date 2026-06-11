@@ -253,6 +253,7 @@
                ps.`court_name`,
                ps.`notes`,
                c.`city`,
+               c.`district`,
                c.`address`
         FROM `ir_activity`.`play_sessions` ps
         LEFT JOIN `ir_auth`.`users` u
@@ -281,6 +282,7 @@
                ps.`court_name`,
                ps.`notes`,
                c.`city`,
+               c.`district`,
                c.`address`
         FROM `ir_activity`.`play_sessions` ps
         LEFT JOIN `ir_auth`.`users` u

@@ -773,7 +773,7 @@ public class MobileProfileService {
             title = sessionTypeLabel(sessionType) + "记录";
         }
 
-        String location = List.of(
+        String location = Arrays.asList(
                         normalizeNullable((String) rowValue(row, "city")),
                         normalizeNullable((String) rowValue(row, "district")),
                         normalizeNullable((String) rowValue(row, "address"))

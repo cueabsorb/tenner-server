@@ -4,6 +4,8 @@ import com.irallyin.server.common.response.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +22,12 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.context.request.async.AsyncRequestNotUsableException;
 
 import java.net.ConnectException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -125,7 +129,8 @@ public class GlobalExceptionHandler {
         Throwable current = error;
         while (current != null) {
             if (current instanceof AsyncRequestNotUsableException
-                    || current instanceof ClientAbortException) {
+                    || current instanceof ClientAbortException
+                    || current instanceof SocketException) {
                 return true;
             }
             String message = current.getMessage();
