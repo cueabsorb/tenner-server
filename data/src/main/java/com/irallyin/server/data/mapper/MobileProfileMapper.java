@@ -16,6 +16,14 @@ public interface MobileProfileMapper {
 
     int updateUser(@Param("userId") String userId, @Param("values") Map<String, Object> values);
 
+    Map<String, Object> findProfilePermissionSettings(@Param("userId") String userId);
+
+    int upsertProfilePermissionSettings(
+            @Param("id") String id,
+            @Param("userId") String userId,
+            @Param("values") Map<String, Object> values
+    );
+
     Map<String, Object> findActiveTennisProfileByUserId(@Param("userId") String userId);
 
     int insertTennisProfile(@Param("id") String id, @Param("userId") String userId);

@@ -84,6 +84,24 @@ public class MobileProfileService {
                 .build();
     }
 
+    public ProfilePermissionSettingsResponse getPermissionSettings(String userId) {
+        requireUser(userId);
+        return toPermissionSettingsResponse(mobileProfileMapper.findProfilePermissionSettings(userId));
+    }
+
+    @Transactional
+    public ProfilePermissionSettingsResponse updatePermissionSettings(String userId, ProfilePermissionSettingsUpdateRequest request) {
+        requireUser(userId);
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("gender_visible", Boolean.TRUE.equals(request.getGenderVisible()) ? 1 : 0);
+        values.put("birthday_visible", Boolean.TRUE.equals(request.getBirthdayVisible()) ? 1 : 0);
+        values.put("region_visible", Boolean.TRUE.equals(request.getRegionVisible()) ? 1 : 0);
+        values.put("habit_courts_visible", Boolean.TRUE.equals(request.getHabitCourtsVisible()) ? 1 : 0);
+        mobileProfileMapper.upsertProfilePermissionSettings(UUID.randomUUID().toString(), userId, values);
+        writeEditLog(userId, "profile_permission_settings");
+        return getPermissionSettings(userId);
+    }
+
     @Transactional
     public MobileProfileResponse updateAvatar(String userId, ProfileAvatarUpdateRequest request) {
         String avatarUrl = normalizeAvatarValue(request.getAvatarUrl());
@@ -957,6 +975,15 @@ public class MobileProfileService {
             return "标签：" + String.join("、", tags);
         }
         return DEFAULT_INTRO;
+    }
+
+    private ProfilePermissionSettingsResponse toPermissionSettingsResponse(Map<String, Object> row) {
+        return ProfilePermissionSettingsResponse.builder()
+                .genderVisible(row != null && booleanValue(rowValue(row, "gender_visible")))
+                .birthdayVisible(row != null && booleanValue(rowValue(row, "birthday_visible")))
+                .regionVisible(row != null && booleanValue(rowValue(row, "region_visible")))
+                .habitCourtsVisible(row != null && booleanValue(rowValue(row, "habit_courts_visible")))
+                .build();
     }
 
     private String buildAvailabilityText(String userId) {

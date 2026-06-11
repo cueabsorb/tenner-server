@@ -51,6 +51,20 @@ CREATE TABLE profile_edit_audit_logs (
     PRIMARY KEY (id)
 );
 
+CREATE TABLE user_profile_permission_settings (
+    id                       CHAR(36)        NOT NULL,
+    user_id                  CHAR(36)        NOT NULL,
+    gender_visible           BOOLEAN         NOT NULL DEFAULT FALSE,
+    birthday_visible         BOOLEAN         NOT NULL DEFAULT FALSE,
+    region_visible           BOOLEAN         NOT NULL DEFAULT FALSE,
+    habit_courts_visible     BOOLEAN         NOT NULL DEFAULT FALSE,
+    status                   TINYINT         NOT NULL DEFAULT 0,
+    created_at               TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at               TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE (user_id)
+);
+
 -- 2. linked_accounts (includes V1.2.0.02 extensions)
 CREATE TABLE linked_accounts (
     id                        CHAR(36)        NOT NULL,

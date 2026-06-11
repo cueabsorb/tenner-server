@@ -33,6 +33,31 @@ public class MobileProfileController {
         }
     }
 
+    @GetMapping("/permission-settings")
+    @Operation(summary = "获取个人主页权限设置")
+    public ApiResponse<ProfilePermissionSettingsResponse> getPermissionSettings(Authentication authentication) {
+        try {
+            return ApiResponse.success(mobileProfileService.getPermissionSettings(currentUserId(authentication)));
+        } catch (Exception e) {
+            log.error("Failed to get permission settings: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/permission-settings")
+    @Operation(summary = "保存个人主页权限设置")
+    public ApiResponse<ProfilePermissionSettingsResponse> updatePermissionSettings(
+            Authentication authentication,
+            @Valid @RequestBody ProfilePermissionSettingsUpdateRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.updatePermissionSettings(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to update permission settings: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @PostMapping("/name")
     @Operation(summary = "编辑名字")
     public ApiResponse<MobileProfileResponse> updateName(Authentication authentication, @Valid @RequestBody ProfileNameUpdateRequest request) {
