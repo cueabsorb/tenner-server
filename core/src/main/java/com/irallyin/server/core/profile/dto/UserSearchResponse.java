@@ -17,4 +17,5 @@ public class UserSearchResponse {
     private List<String> habitCourts;
     private Integer followingCount;
     private Integer followerCount;
+    private Boolean isFollowing;
 }

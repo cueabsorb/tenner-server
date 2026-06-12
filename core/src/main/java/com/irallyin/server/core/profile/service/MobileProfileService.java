@@ -255,6 +255,7 @@ public class MobileProfileService {
                     .region(regionText(row))
                     .followingCount(integerValue(rowValue(row, "following_count")))
                     .followerCount(integerValue(rowValue(row, "follower_count")))
+                    .isFollowing(booleanValue(rowValue(row, "is_following")))
             );
 
             String courtName = (String) rowValue(row, "court_name");

@@ -577,6 +577,20 @@
                 FROM `ir_activity`.`player_relationship_edges` fre
                 WHERE fre.`peer_user_id` = u.`id`
                   AND fre.`status` = 0) AS follower_count,
+               <choose>
+                   <when test="currentUserId != null and currentUserId != ''">
+                       EXISTS (
+                           SELECT 1
+                           FROM `ir_activity`.`player_relationship_edges` rel
+                           WHERE rel.`user_id` = #{currentUserId}
+                             AND rel.`peer_user_id` = u.`id`
+                             AND rel.`status` = 0
+                       ) AS is_following,
+                   </when>
+                   <otherwise>
+                       0 AS is_following,
+                   </otherwise>
+               </choose>
                c.`name` AS court_name,
                hc.`is_primary`
         FROM `ir_auth`.`users` u
