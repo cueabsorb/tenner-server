@@ -397,7 +397,6 @@
           ON c.`id` = ps.`court_id`
          AND c.`status` = 0
         WHERE ps.`owner_id` = #{userId}
-          AND ps.`sport_type` = 'tennis'
           AND ps.`status` = 0
         ORDER BY ps.`started_at` DESC
         LIMIT 100
@@ -421,7 +420,6 @@
         FROM `ir_activity`.`player_relationship_edges` fe
         INNER JOIN `ir_activity`.`play_sessions` ps
           ON ps.`owner_id` = fe.`peer_user_id`
-         AND ps.`sport_type` = 'tennis'
          AND ps.`status` = 0
         INNER JOIN `ir_profile`.`user_profile_permission_settings` ups
           ON ups.`user_id` = ps.`owner_id`
@@ -462,8 +460,55 @@
           ON c.`id` = ps.`court_id`
          AND c.`status` = 0
         WHERE ps.`id` = #{sessionId}
-          AND ps.`sport_type` = 'tennis'
           AND ps.`status` = 0
+        LIMIT 1
+    </select>
+
+    <select id="findImportedPlaySessionHealthkitUuids" resultType="string">
+        SELECT DISTINCT ps.`healthkit_uuid`
+        FROM `ir_activity`.`play_sessions` ps
+       WHERE ps.`owner_id` = #{userId}
+         AND ps.`status` = 0
+         AND ps.`healthkit_uuid` IS NOT NULL
+          <choose>
+              <when test="healthkitUuids != null and healthkitUuids.size() > 0">
+                  AND ps.`healthkit_uuid` IN
+                  <foreach collection="healthkitUuids" item="uuid" open="(" separator="," close=")">
+                      #{uuid}
+                  </foreach>
+              </when>
+              <otherwise>
+                  AND 1 = 0
+              </otherwise>
+          </choose>
+    </select>
+
+    <select id="findPlaySessionByHealthkitUuid" resultType="map">
+        SELECT ps.`id`,
+               ps.`owner_id`,
+               u.`display_name` AS owner_name,
+               u.`avatar_url` AS owner_avatar_url,
+               ps.`session_type`,
+               ps.`title`,
+               ps.`started_at`,
+               ps.`duration_minutes`,
+               ps.`court_id`,
+               ps.`court_name`,
+               ps.`notes`,
+               c.`city`,
+               NULL AS `district`,
+               c.`address`
+        FROM `ir_activity`.`play_sessions` ps
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = ps.`owner_id`
+         AND u.`status` = 0
+        LEFT JOIN `ir_profile`.`courts` c
+          ON c.`id` = ps.`court_id`
+         AND c.`status` = 0
+      WHERE ps.`owner_id` = #{userId}
+         AND ps.`healthkit_uuid` = #{healthkitUuid}
+         AND ps.`status` = 0
+        ORDER BY ps.`started_at` DESC
         LIMIT 1
     </select>
 
@@ -482,6 +527,7 @@
             <if test="values.containsKey('court_name')">`court_name`,</if>
             <if test="values.containsKey('notes')">`notes`,</if>
             <if test="values.containsKey('privacy_level')">`privacy_level`,</if>
+            <if test="values.containsKey('healthkit_uuid')">`healthkit_uuid`,</if>
             `status`
         </trim>
         <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
@@ -497,6 +543,7 @@
             <if test="values.containsKey('court_name')">#{values.court_name},</if>
             <if test="values.containsKey('notes')">#{values.notes},</if>
             <if test="values.containsKey('privacy_level')">#{values.privacy_level},</if>
+            <if test="values.containsKey('healthkit_uuid')">#{values.healthkit_uuid},</if>
             0
         </trim>
     </insert>

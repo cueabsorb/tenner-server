@@ -22,7 +22,7 @@ import java.util.UUID;
 public class MobileProfileController {
     private final MobileProfileService mobileProfileService;
 
-    @GetMapping("/me")
+    @RequestMapping(value = "/me", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "获取个人主页编辑资料")
     public ApiResponse<MobileProfileResponse> me(Authentication authentication) {
         try {
@@ -33,7 +33,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/permission-settings")
+    @RequestMapping(value = "/permission-settings", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "获取个人主页权限设置")
     public ApiResponse<ProfilePermissionSettingsResponse> getPermissionSettings(Authentication authentication) {
         try {
@@ -192,7 +192,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/habit-courts/search")
+    @RequestMapping(value = "/habit-courts/search", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "搜索可添加的常去网球场")
     public ApiResponse<List<HabitCourtResponse>> searchHabitCourts(
             @RequestParam(required = false) String country,
@@ -208,7 +208,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/users/search")
+    @RequestMapping(value = "/users/search", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "按名称搜索用户")
     public ApiResponse<List<UserSearchResponse>> searchUsers(
             Authentication authentication,
@@ -229,7 +229,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/users/founder")
+    @RequestMapping(value = "/users/founder", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "获取 App 开发者账号")
     public ApiResponse<UserSearchResponse> founderUser(Authentication authentication) {
         try {
@@ -251,7 +251,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/racket-catalog")
+    @RequestMapping(value = "/racket-catalog", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "获取球拍基础数据")
     public ApiResponse<List<RacketCatalogResponse>> listRacketCatalog() {
         try {
@@ -262,7 +262,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/racket-catalog/{catalogId}/player-usages")
+    @RequestMapping(value = "/racket-catalog/{catalogId}/player-usages", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "获取职业球员使用球拍记录")
     public ApiResponse<List<RacketPlayerUsageResponse>> listRacketPlayerUsages(@PathVariable String catalogId) {
         try {
@@ -273,7 +273,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/activity-records")
+    @RequestMapping(value = "/activity-records", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "获取精彩记录活动列表")
     public ApiResponse<List<ActivityRecordResponse>> listActivityRecords(
             Authentication authentication,
@@ -323,7 +323,35 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/match-requests")
+    @PostMapping("/fitness/workouts/import-status")
+    @Operation(summary = "查询HealthKit训练是否已加入精彩记录")
+    public ApiResponse<List<FitnessWorkoutImportStatusResponse>> fitnessWorkoutImportStatus(
+            Authentication authentication,
+            @Valid @RequestBody FitnessWorkoutImportStatusRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.findFitnessWorkoutImportStatuses(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to query fitness workout import statuses: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/fitness/workouts/import")
+    @Operation(summary = "将HealthKit训练加入精彩记录")
+    public ApiResponse<ActivityRecordResponse> importFitnessWorkout(
+            Authentication authentication,
+            @Valid @RequestBody FitnessWorkoutSessionRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.importFitnessWorkoutAsActivityRecord(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to import fitness workout as activity record: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @RequestMapping(value = "/match-requests", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "按城市获取约球列表")
     public ApiResponse<List<MatchRequestResponse>> listMatchRequests(
             Authentication authentication,
@@ -333,6 +361,25 @@ public class MobileProfileController {
     ) {
         try {
             return ApiResponse.success(mobileProfileService.listMatchRequests(currentUserId(authentication), country, province, city));
+        } catch (Exception e) {
+            log.error("Failed to list match requests: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/match-requests/list")
+    @Operation(summary = "按城市获取约球列表")
+    public ApiResponse<List<MatchRequestResponse>> listMatchRequestsByPost(
+            Authentication authentication,
+            @Valid @RequestBody MatchRequestListRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.listMatchRequests(
+                    currentUserId(authentication),
+                    request.getCountry(),
+                    request.getProvince(),
+                    request.getCity()
+            ));
         } catch (Exception e) {
             log.error("Failed to list match requests: {}", e.getMessage(), e);
             throw e;
@@ -375,7 +422,7 @@ public class MobileProfileController {
         }
     }
 
-    @GetMapping("/courts/{courtId}")
+    @RequestMapping(value = "/courts/{courtId}", method = {RequestMethod.GET, RequestMethod.POST})
     @Operation(summary = "获取网球场数据库详情")
     public ApiResponse<HabitCourtResponse> getCourt(Authentication authentication, @PathVariable String courtId) {
         try {

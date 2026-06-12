@@ -590,6 +590,109 @@ public class MobileProfileService {
         return toActivityRecordResponse(created);
     }
 
+    public List<FitnessWorkoutImportStatusResponse> findFitnessWorkoutImportStatuses(
+            String userId,
+            FitnessWorkoutImportStatusRequest request
+    ) {
+        requireUser(userId);
+        List<String> uuids = Optional.ofNullable(request.getHealthkitUuids())
+                .orElseGet(List::of)
+                .stream()
+                .map(this::normalizeNullable)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .limit(200)
+                .toList();
+        Set<String> imported = new HashSet<>(mobileProfileMapper.findImportedPlaySessionHealthkitUuids(userId, uuids));
+        return uuids.stream()
+                .map(uuid -> FitnessWorkoutImportStatusResponse.builder()
+                        .healthkitUuid(uuid)
+                        .imported(imported.contains(uuid))
+                        .build())
+                .toList();
+    }
+
+    @Transactional
+    public ActivityRecordResponse importFitnessWorkoutAsActivityRecord(String userId, FitnessWorkoutSessionRequest request) {
+        Map<String, Object> user = requireUser(userId);
+        String healthkitUuid = normalize(request.getHealthkitUuid());
+        Map<String, Object> existing = mobileProfileMapper.findPlaySessionByHealthkitUuid(userId, healthkitUuid);
+        if (existing != null) {
+            return toActivityRecordResponse(existing);
+        }
+
+        LocalDateTime startedAt = parseFitnessDateTime(request.getStartedAt(), "训练开始时间");
+        LocalDateTime endedAt = parseNullableFitnessDateTime(request.getEndedAt(), "训练结束时间");
+        int durationMinutes = request.getDurationSeconds() == null
+                ? 60
+                : Math.max(1, (int) Math.round(request.getDurationSeconds() / 60.0));
+        if (endedAt == null) {
+            endedAt = startedAt.plusMinutes(durationMinutes);
+        }
+
+        String sportType = Optional.ofNullable(normalizeNullable(request.getSportType())).orElse("other");
+        String sportLabel = fitnessSportLabel(sportType);
+        String title = sportLabel + "运动记录";
+
+        List<String> noteParts = new ArrayList<>();
+        if (request.getTotalEnergyKcal() != null || request.getActiveEnergyKcal() != null) {
+            Double kcal = request.getTotalEnergyKcal() != null ? request.getTotalEnergyKcal() : request.getActiveEnergyKcal();
+            noteParts.add("热量 " + Math.round(kcal) + " 千卡");
+        }
+        if (request.getDistanceMeters() != null) {
+            noteParts.add("距离 " + Math.round(request.getDistanceMeters()) + " 米");
+        }
+
+        String sessionId = UUID.randomUUID().toString();
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("id", sessionId);
+        values.put("owner_id", userId);
+        values.put("sport_type", sportType);
+        values.put("session_type", "training");
+        values.put("title", title);
+        values.put("started_at", startedAt);
+        values.put("ended_at", endedAt);
+        values.put("duration_minutes", durationMinutes);
+        values.put("court_id", null);
+        values.put("court_name", null);
+        values.put("notes", noteParts.isEmpty() ? "来自 HealthKit" : String.join(" · ", noteParts));
+        values.put("privacy_level", "matchedPlayers");
+        values.put("healthkit_uuid", healthkitUuid);
+        mobileProfileMapper.insertPlaySession(values);
+        writeEditLog(userId, "fitness_activity_record");
+
+        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId);
+        if (created == null) {
+            created = new LinkedHashMap<>(values);
+            created.put("owner_name", rowValue(user, "display_name"));
+            created.put("owner_avatar_url", rowValue(user, "avatar_url"));
+        }
+        return toActivityRecordResponse(created);
+    }
+
+    private String fitnessSportLabel(String sportType) {
+        if (!StringUtils.hasText(sportType)) {
+            return "健身";
+        }
+        return switch (sportType) {
+            case "tennis" -> "网球";
+            case "running" -> "跑步";
+            case "cycling" -> "骑行";
+            case "swimming" -> "游泳";
+            case "strength_training" -> "力量训练";
+            case "yoga" -> "瑜伽";
+            case "hiit" -> "HIIT";
+            case "hiking" -> "徒步";
+            case "walking" -> "步行";
+            case "elliptical" -> "椭圆机";
+            case "rowing" -> "划船";
+            case "core_training" -> "核心训练";
+            case "pilates" -> "普拉提";
+            case "dance" -> "舞蹈";
+            default -> "其他训练";
+        };
+    }
+
     @Transactional
     public RacketCatalogResponse createRacketCatalog(String userId, RacketCatalogCreateRequest request) {
         requireAdmin(userId);

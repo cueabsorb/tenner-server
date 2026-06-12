@@ -58,6 +58,16 @@ public interface MobileProfileMapper {
 
     Map<String, Object> findPlaySessionById(@Param("sessionId") String sessionId);
 
+    List<String> findImportedPlaySessionHealthkitUuids(
+            @Param("userId") String userId,
+            @Param("healthkitUuids") List<String> healthkitUuids
+    );
+
+    Map<String, Object> findPlaySessionByHealthkitUuid(
+            @Param("userId") String userId,
+            @Param("healthkitUuid") String healthkitUuid
+    );
+
     int insertPlaySession(@Param("values") Map<String, Object> values);
 
     List<Map<String, Object>> findMatchRequests(
