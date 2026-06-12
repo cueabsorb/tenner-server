@@ -645,6 +645,7 @@ public class MobileProfileService {
         }
 
         String sportType = Optional.ofNullable(normalizeNullable(request.getSportType())).orElse("other");
+        String playSessionSportType = fitnessPlaySessionSportType(sportType);
         String sportLabel = fitnessSportLabel(sportType);
         String title = sportLabel + "运动记录";
 
@@ -661,7 +662,7 @@ public class MobileProfileService {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("id", sessionId);
         values.put("owner_id", userId);
-        values.put("sport_type", sportType);
+        values.put("sport_type", playSessionSportType);
         values.put("session_type", "training");
         values.put("title", title);
         values.put("started_at", startedAt);
@@ -704,6 +705,20 @@ public class MobileProfileService {
             case "pilates" -> "普拉提";
             case "dance" -> "舞蹈";
             default -> "其他训练";
+        };
+    }
+
+    private String fitnessPlaySessionSportType(String sportType) {
+        if (!StringUtils.hasText(sportType)) {
+            return "other";
+        }
+        return switch (sportType) {
+            case "tennis", "running", "cycling", "swimming", "yoga", "hiit", "hiking",
+                 "walking", "elliptical", "rowing", "pilates", "dance", "other" -> sportType;
+            case "strength_training", "traditionalStrengthTraining", "functionalStrengthTraining" -> "strength_training";
+            case "core_training" -> "core_training";
+            case "highIntensityIntervalTraining" -> "hiit";
+            default -> sportType.length() <= 20 ? sportType : "other";
         };
     }
 
