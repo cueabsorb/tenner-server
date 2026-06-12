@@ -93,12 +93,15 @@ public class GlobalExceptionHandler {
             return null;
         }
 
+        Throwable root = rootCause(e);
         String clientMessage = resolveClientMessage(e);
-        log.error("Unexpected error on {} {}: rawError={}({}) -> clientMessage={}",
+        log.error("Unexpected error on {} {}: rawError={}({}), rootCause={}({}) -> clientMessage={}",
                 request.getMethod(),
                 request.getRequestURI(),
                 e.getClass().getSimpleName(),
                 e.getMessage(),
+                root == null ? "null" : root.getClass().getSimpleName(),
+                root == null ? "null" : root.getMessage(),
                 clientMessage,
                 e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
