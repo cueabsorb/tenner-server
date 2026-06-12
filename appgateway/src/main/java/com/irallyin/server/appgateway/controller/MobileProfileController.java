@@ -264,9 +264,12 @@ public class MobileProfileController {
 
     @GetMapping("/activity-records")
     @Operation(summary = "获取精彩记录活动列表")
-    public ApiResponse<List<ActivityRecordResponse>> listActivityRecords(Authentication authentication) {
+    public ApiResponse<List<ActivityRecordResponse>> listActivityRecords(
+            Authentication authentication,
+            @RequestParam(required = false, defaultValue = "mine") String scope
+    ) {
         try {
-            return ApiResponse.success(mobileProfileService.listActivityRecords(currentUserId(authentication)));
+            return ApiResponse.success(mobileProfileService.listActivityRecords(currentUserId(authentication), scope));
         } catch (Exception e) {
             log.error("Failed to list activity records: {}", e.getMessage(), e);
             throw e;
@@ -283,6 +286,36 @@ public class MobileProfileController {
             return ApiResponse.success(mobileProfileService.createActivityRecord(currentUserId(authentication), request));
         } catch (Exception e) {
             log.error("Failed to create activity record: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/match-requests")
+    @Operation(summary = "按城市获取约球列表")
+    public ApiResponse<List<MatchRequestResponse>> listMatchRequests(
+            Authentication authentication,
+            @RequestParam(required = false) String country,
+            @RequestParam(required = false) String province,
+            @RequestParam(required = false) String city
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.listMatchRequests(currentUserId(authentication), country, province, city));
+        } catch (Exception e) {
+            log.error("Failed to list match requests: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/match-requests")
+    @Operation(summary = "发布约球")
+    public ApiResponse<MatchRequestResponse> createMatchRequest(
+            Authentication authentication,
+            @Valid @RequestBody MatchRequestCreateRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.createMatchRequest(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to create match request: {}", e.getMessage(), e);
             throw e;
         }
     }

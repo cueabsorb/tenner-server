@@ -1,0 +1,49 @@
+<!-- 将Tomcat中默认的HTTPS端口修改为443。8443端口不可通过域名直接访问、需要在域名后加上端口号。 -->
+<!-- 443端口是HTTPS的默认端口，可通过域名直接访问，无需在域名后加端口号。 -->
+<!-- Connector port有两种运行模式NIO和APR，请选择NIO模式。-->
+<Connector port="443"
+           protocol="org.apache.coyote.http11.Http11NioProtocol"
+           maxThreads="150"
+           SSLEnabled="true"
+           maxParameterCount="1000"
+>
+
+    <SSLHostConfig>
+        <!-- conf/domain_name.pfx请您替换为证书的实际路径，证书密码替换为证书密码文件pfx-password.txt中的内容 -->
+        <Certificate certificateKeystoreFile="/etc/ssl/cert/domain_name.pfx"
+                     certificateKeystorePassword="证书密码"
+                     type="RSA" />
+    </SSLHostConfig>
+</Connector>
+
+
+<!--执行使用-->
+
+
+<Connector port="443"
+           protocol="org.apache.coyote.http11.Http11NioProtocol"
+           maxThreads="150"
+           SSLEnabled="true"
+           maxParameterCount="1000"
+>
+
+<SSLHostConfig>
+    <Certificate certificateKeystoreFile="/root/ssl/irallyin.com.pfx"
+                 certificateKeystorePassword="eew2jnmq"
+                 type="RSA" />
+</SSLHostConfig>
+</Connector>
+
+<!--在web.xml文件最底部添加以下配置项 -->
+<security-constraint>
+    <web-resource-collection>
+        <web-resource-name>SSL</web-resource-name>
+        <url-pattern>/*</url-pattern>
+    </web-resource-collection>
+    <user-data-constraint>
+       <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+    </user-data-constraint>
+</security-constraint>
+
+
+

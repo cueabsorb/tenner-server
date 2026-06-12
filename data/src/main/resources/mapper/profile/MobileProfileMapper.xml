@@ -53,7 +53,8 @@
                `region_visible`,
                `habit_courts_visible`,
                `following_list_visible`,
-               `follower_list_visible`
+               `follower_list_visible`,
+               `activity_records_visible`
         FROM `ir_profile`.`user_profile_permission_settings`
         WHERE `user_id` = #{userId}
           AND `status` = 0
@@ -62,7 +63,7 @@
 
     <insert id="upsertProfilePermissionSettings">
         INSERT INTO `ir_profile`.`user_profile_permission_settings`
-        (`id`, `user_id`, `gender_visible`, `birthday_visible`, `region_visible`, `habit_courts_visible`, `following_list_visible`, `follower_list_visible`, `status`)
+        (`id`, `user_id`, `gender_visible`, `birthday_visible`, `region_visible`, `habit_courts_visible`, `following_list_visible`, `follower_list_visible`, `activity_records_visible`, `status`)
         VALUES
         (
             #{id},
@@ -73,6 +74,7 @@
             #{values.habit_courts_visible},
             #{values.following_list_visible},
             #{values.follower_list_visible},
+            #{values.activity_records_visible},
             0
         )
         ON DUPLICATE KEY UPDATE
@@ -82,6 +84,7 @@
             `habit_courts_visible` = VALUES(`habit_courts_visible`),
             `following_list_visible` = VALUES(`following_list_visible`),
             `follower_list_visible` = VALUES(`follower_list_visible`),
+            `activity_records_visible` = VALUES(`activity_records_visible`),
             `status` = 0,
             `updated_at` = CURRENT_TIMESTAMP
     </insert>
@@ -269,6 +272,42 @@
         LIMIT 100
     </select>
 
+    <select id="findVisibleActivityRecordsByFollowing" resultType="map">
+        SELECT ps.`id`,
+               ps.`owner_id`,
+               u.`display_name` AS owner_name,
+               u.`avatar_url` AS owner_avatar_url,
+               ps.`session_type`,
+               ps.`title`,
+               ps.`started_at`,
+               ps.`duration_minutes`,
+               ps.`court_id`,
+               ps.`court_name`,
+               ps.`notes`,
+               c.`city`,
+               c.`district`,
+               c.`address`
+        FROM `ir_activity`.`player_relationship_edges` fe
+        INNER JOIN `ir_activity`.`play_sessions` ps
+          ON ps.`owner_id` = fe.`peer_user_id`
+         AND ps.`sport_type` = 'tennis'
+         AND ps.`status` = 0
+        INNER JOIN `ir_profile`.`user_profile_permission_settings` ups
+          ON ups.`user_id` = ps.`owner_id`
+         AND ups.`activity_records_visible` = 1
+         AND ups.`status` = 0
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = ps.`owner_id`
+         AND u.`status` = 0
+        LEFT JOIN `ir_profile`.`courts` c
+          ON c.`id` = ps.`court_id`
+         AND c.`status` = 0
+        WHERE fe.`user_id` = #{userId}
+          AND fe.`status` = 0
+        ORDER BY ps.`started_at` DESC
+        LIMIT 100
+    </select>
+
     <select id="findPlaySessionById" resultType="map">
         SELECT ps.`id`,
                ps.`owner_id`,
@@ -327,6 +366,141 @@
             <if test="values.containsKey('court_name')">#{values.court_name},</if>
             <if test="values.containsKey('notes')">#{values.notes},</if>
             <if test="values.containsKey('privacy_level')">#{values.privacy_level},</if>
+            0
+        </trim>
+    </insert>
+
+    <select id="findMatchRequests" resultType="map">
+        SELECT ce.`id`,
+               ce.`organizer_id`,
+               u.`display_name` AS organizer_name,
+               u.`avatar_url`,
+               ce.`title`,
+               ce.`court_id`,
+               COALESCE(ce.`court_name`, c.`name`) AS court_name,
+               COALESCE(ce.`country`, c.`country`) AS country,
+               COALESCE(ce.`province`, c.`province`) AS province,
+               COALESCE(ce.`city`, c.`city`) AS city,
+               ce.`district`,
+               ce.`started_at`,
+               ce.`ended_at`,
+               ce.`match_type`,
+               ce.`needed_players`,
+               ce.`min_level`,
+               ce.`max_level`,
+               ce.`price_mode`,
+               ce.`price_per_person`,
+               ce.`gender_requirement`,
+               ce.`note`
+        FROM `ir_club`.`club_events` ce
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = ce.`organizer_id`
+         AND u.`status` = 0
+         AND u.`deleted_at` IS NULL
+        LEFT JOIN `ir_profile`.`courts` c
+          ON c.`id` = ce.`court_id`
+         AND c.`status` = 0
+        WHERE ce.`status` = 0
+          AND ce.`event_status` IN ('upcoming', 'ongoing')
+          AND ce.`started_at` >= DATE_SUB(NOW(), INTERVAL 12 HOUR)
+          <if test="country != null and country != ''">
+          AND COALESCE(ce.`country`, c.`country`) = #{country}
+          </if>
+          <if test="province != null and province != ''">
+          AND COALESCE(ce.`province`, c.`province`) = #{province}
+          </if>
+          <if test="city != null and city != ''">
+          AND COALESCE(ce.`city`, c.`city`) = #{city}
+          </if>
+        ORDER BY ce.`started_at` ASC, ce.`created_at` DESC
+        LIMIT 100
+    </select>
+
+    <select id="findMatchRequestById" resultType="map">
+        SELECT ce.`id`,
+               ce.`organizer_id`,
+               u.`display_name` AS organizer_name,
+               u.`avatar_url`,
+               ce.`title`,
+               ce.`court_id`,
+               COALESCE(ce.`court_name`, c.`name`) AS court_name,
+               COALESCE(ce.`country`, c.`country`) AS country,
+               COALESCE(ce.`province`, c.`province`) AS province,
+               COALESCE(ce.`city`, c.`city`) AS city,
+               ce.`district`,
+               ce.`started_at`,
+               ce.`ended_at`,
+               ce.`match_type`,
+               ce.`needed_players`,
+               ce.`min_level`,
+               ce.`max_level`,
+               ce.`price_mode`,
+               ce.`price_per_person`,
+               ce.`gender_requirement`,
+               ce.`note`
+        FROM `ir_club`.`club_events` ce
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = ce.`organizer_id`
+         AND u.`status` = 0
+         AND u.`deleted_at` IS NULL
+        LEFT JOIN `ir_profile`.`courts` c
+          ON c.`id` = ce.`court_id`
+         AND c.`status` = 0
+        WHERE ce.`id` = #{eventId}
+          AND ce.`status` = 0
+        LIMIT 1
+    </select>
+
+    <insert id="insertMatchRequest">
+        INSERT INTO `ir_club`.`club_events`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">`id`,</if>
+            <if test="values.containsKey('club_id')">`club_id`,</if>
+            <if test="values.containsKey('organizer_id')">`organizer_id`,</if>
+            <if test="values.containsKey('title')">`title`,</if>
+            <if test="values.containsKey('court_id')">`court_id`,</if>
+            <if test="values.containsKey('court_name')">`court_name`,</if>
+            <if test="values.containsKey('country')">`country`,</if>
+            <if test="values.containsKey('province')">`province`,</if>
+            <if test="values.containsKey('city')">`city`,</if>
+            <if test="values.containsKey('district')">`district`,</if>
+            <if test="values.containsKey('started_at')">`started_at`,</if>
+            <if test="values.containsKey('ended_at')">`ended_at`,</if>
+            <if test="values.containsKey('match_type')">`match_type`,</if>
+            <if test="values.containsKey('needed_players')">`needed_players`,</if>
+            <if test="values.containsKey('min_level')">`min_level`,</if>
+            <if test="values.containsKey('max_level')">`max_level`,</if>
+            <if test="values.containsKey('price_mode')">`price_mode`,</if>
+            <if test="values.containsKey('price_per_person')">`price_per_person`,</if>
+            <if test="values.containsKey('gender_requirement')">`gender_requirement`,</if>
+            <if test="values.containsKey('note')">`note`,</if>
+            <if test="values.containsKey('max_participants')">`max_participants`,</if>
+            `event_status`,
+            `status`
+        </trim>
+        <trim prefix="VALUES (" suffix=")" suffixOverrides=",">
+            <if test="values.containsKey('id')">#{values.id},</if>
+            <if test="values.containsKey('club_id')">#{values.club_id},</if>
+            <if test="values.containsKey('organizer_id')">#{values.organizer_id},</if>
+            <if test="values.containsKey('title')">#{values.title},</if>
+            <if test="values.containsKey('court_id')">#{values.court_id},</if>
+            <if test="values.containsKey('court_name')">#{values.court_name},</if>
+            <if test="values.containsKey('country')">#{values.country},</if>
+            <if test="values.containsKey('province')">#{values.province},</if>
+            <if test="values.containsKey('city')">#{values.city},</if>
+            <if test="values.containsKey('district')">#{values.district},</if>
+            <if test="values.containsKey('started_at')">#{values.started_at},</if>
+            <if test="values.containsKey('ended_at')">#{values.ended_at},</if>
+            <if test="values.containsKey('match_type')">#{values.match_type},</if>
+            <if test="values.containsKey('needed_players')">#{values.needed_players},</if>
+            <if test="values.containsKey('min_level')">#{values.min_level},</if>
+            <if test="values.containsKey('max_level')">#{values.max_level},</if>
+            <if test="values.containsKey('price_mode')">#{values.price_mode},</if>
+            <if test="values.containsKey('price_per_person')">#{values.price_per_person},</if>
+            <if test="values.containsKey('gender_requirement')">#{values.gender_requirement},</if>
+            <if test="values.containsKey('note')">#{values.note},</if>
+            <if test="values.containsKey('max_participants')">#{values.max_participants},</if>
+            'upcoming',
             0
         </trim>
     </insert>

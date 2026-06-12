@@ -20,4 +20,6 @@ public class ProfilePermissionSettingsUpdateRequest {
     private Boolean followingListVisible;
 
     private Boolean followerListVisible;
+
+    private Boolean activityRecordsVisible;
 }

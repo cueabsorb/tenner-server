@@ -99,6 +99,7 @@ public class MobileProfileService {
         values.put("habit_courts_visible", Boolean.TRUE.equals(request.getHabitCourtsVisible()) ? 1 : 0);
         values.put("following_list_visible", Boolean.TRUE.equals(request.getFollowingListVisible()) ? 1 : 0);
         values.put("follower_list_visible", Boolean.TRUE.equals(request.getFollowerListVisible()) ? 1 : 0);
+        values.put("activity_records_visible", Boolean.TRUE.equals(request.getActivityRecordsVisible()) ? 1 : 0);
         mobileProfileMapper.upsertProfilePermissionSettings(UUID.randomUUID().toString(), userId, values);
         writeEditLog(userId, "profile_permission_settings");
         return getPermissionSettings(userId);
@@ -314,12 +315,97 @@ public class MobileProfileService {
                 .toList();
     }
 
-    public List<ActivityRecordResponse> listActivityRecords(String userId) {
+    public List<ActivityRecordResponse> listActivityRecords(String userId, String scope) {
         requireUser(userId);
-        return mobileProfileMapper.findActivityRecordsByUserId(userId)
+        List<Map<String, Object>> rows = "partners".equalsIgnoreCase(scope)
+                ? mobileProfileMapper.findVisibleActivityRecordsByFollowing(userId)
+                : mobileProfileMapper.findActivityRecordsByUserId(userId);
+        return rows
                 .stream()
                 .map(this::toActivityRecordResponse)
                 .toList();
+    }
+
+    public List<MatchRequestResponse> listMatchRequests(String userId, String country, String province, String city) {
+        requireUser(userId);
+        String normalizedCountry = normalizeNullable(country);
+        String normalizedProvince = normalizeNullable(province);
+        String normalizedCity = normalizeNullable(city);
+        return mobileProfileMapper.findMatchRequests(normalizedCountry, normalizedProvince, normalizedCity)
+                .stream()
+                .map(this::toMatchRequestResponse)
+                .toList();
+    }
+
+    @Transactional
+    public MatchRequestResponse createMatchRequest(String userId, MatchRequestCreateRequest request) {
+        requireUser(userId);
+        LocalDateTime startedAt = parseStartedAt(request.getStartedAt());
+        int durationMinutes = request.getDurationMinutes() == null ? 120 : request.getDurationMinutes();
+        if (durationMinutes <= 0 || durationMinutes > 1440) {
+            throw new BusinessException(10001, "活动时长不正确");
+        }
+
+        String matchType = Optional.ofNullable(normalizeNullable(request.getMatchType())).orElse("双打");
+        int neededPlayers = request.getNeededPlayers() == null ? 1 : request.getNeededPlayers();
+        if (neededPlayers <= 0 || neededPlayers > 20) {
+            throw new BusinessException(10001, "缺少人数不正确");
+        }
+        Double minLevel = request.getMinLevel();
+        Double maxLevel = request.getMaxLevel();
+        if (minLevel != null && maxLevel != null && minLevel > maxLevel) {
+            throw new BusinessException(10001, "NTRP范围不正确");
+        }
+
+        String courtId = normalizeNullable(request.getCourtId());
+        String courtName = normalizeNullable(request.getCourtName());
+        CourtDO court = null;
+        if (StringUtils.hasText(courtId)) {
+            court = mobileProfileMapper.findActiveCourtById(courtId);
+            if (court == null) {
+                throw new BusinessException(10004, "球场不存在");
+            }
+            courtName = court.getName();
+        } else if (StringUtils.hasText(courtName)) {
+            court = mobileProfileMapper.findActiveCourtByName(courtName);
+            if (court != null) {
+                courtId = court.getId();
+            }
+        }
+
+        String note = normalizeNullable(request.getNote());
+        if (StringUtils.hasText(note)) {
+            contentSafetyService.assertSafeText(note, "约球备注");
+        }
+
+        String eventId = UUID.randomUUID().toString();
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("id", eventId);
+        values.put("club_id", userId);
+        values.put("organizer_id", userId);
+        values.put("title", matchType + "缺" + neededPlayers + "人");
+        values.put("court_id", courtId);
+        values.put("court_name", courtName);
+        values.put("country", Optional.ofNullable(normalizeNullable(request.getCountry())).orElse(court == null ? null : court.getCountry()));
+        values.put("province", Optional.ofNullable(normalizeNullable(request.getProvince())).orElse(court == null ? null : court.getProvince()));
+        values.put("city", Optional.ofNullable(normalizeNullable(request.getCity())).orElse(court == null ? null : court.getCity()));
+        values.put("district", normalizeNullable(request.getDistrict()));
+        values.put("started_at", startedAt);
+        values.put("ended_at", startedAt.plusMinutes(durationMinutes));
+        values.put("match_type", matchType);
+        values.put("needed_players", neededPlayers);
+        values.put("min_level", minLevel);
+        values.put("max_level", maxLevel);
+        values.put("price_mode", Optional.ofNullable(normalizeNullable(request.getPriceMode())).orElse("AA"));
+        values.put("price_per_person", request.getPricePerPerson());
+        values.put("gender_requirement", normalizeNullable(request.getGenderRequirement()));
+        values.put("note", note);
+        values.put("max_participants", neededPlayers + 1);
+        mobileProfileMapper.insertMatchRequest(values);
+        writeEditLog(userId, "match_request");
+
+        Map<String, Object> created = mobileProfileMapper.findMatchRequestById(eventId);
+        return toMatchRequestResponse(created == null ? values : created);
     }
 
     @Transactional
@@ -812,6 +898,104 @@ public class MobileProfileService {
                 .build();
     }
 
+    private MatchRequestResponse toMatchRequestResponse(Map<String, Object> row) {
+        LocalDateTime startedAt = localDateTimeValue(rowValue(row, "started_at"));
+        String organizerName = normalizeNullable((String) rowValue(row, "organizer_name"));
+        String courtName = normalizeNullable((String) rowValue(row, "court_name"));
+        String city = normalizeNullable((String) rowValue(row, "city"));
+        String district = normalizeNullable((String) rowValue(row, "district"));
+        String priceMode = Optional.ofNullable(normalizeNullable((String) rowValue(row, "price_mode"))).orElse("AA");
+        Integer pricePerPerson = integerValue(rowValue(row, "price_per_person"));
+        Integer neededPlayers = integerValue(rowValue(row, "needed_players"));
+        Double minLevel = numberAsDouble(rowValue(row, "min_level"), null);
+        Double maxLevel = numberAsDouble(rowValue(row, "max_level"), null);
+
+        return MatchRequestResponse.builder()
+                .id((String) rowValue(row, "id"))
+                .organizerId((String) rowValue(row, "organizer_id"))
+                .organizerName(organizerName == null ? "球友" : organizerName)
+                .avatarUrl((String) rowValue(row, "avatar_url"))
+                .title((String) rowValue(row, "title"))
+                .courtName(courtName == null ? "球场待定" : courtName)
+                .country((String) rowValue(row, "country"))
+                .province((String) rowValue(row, "province"))
+                .city(city)
+                .district(district)
+                .areaText(matchAreaText(city, district))
+                .startedAt(startedAt == null ? null : startedAt.toString())
+                .timeText(matchTimeText(startedAt))
+                .matchType((String) rowValue(row, "match_type"))
+                .neededPlayers(neededPlayers)
+                .minLevel(minLevel)
+                .maxLevel(maxLevel)
+                .levelText(matchLevelText(minLevel, maxLevel))
+                .priceMode(priceMode)
+                .pricePerPerson(pricePerPerson)
+                .priceText(matchPriceText(priceMode, pricePerPerson))
+                .note(matchNoteText((String) rowValue(row, "note"), neededPlayers))
+                .distanceText("附近")
+                .build();
+    }
+
+    private String matchAreaText(String city, String district) {
+        return Arrays.asList(city, district)
+                .stream()
+                .filter(Objects::nonNull)
+                .distinct()
+                .reduce((left, right) -> left + " · " + right)
+                .orElse("同城");
+    }
+
+    private String matchTimeText(LocalDateTime startedAt) {
+        if (startedAt == null) {
+            return "时间待定";
+        }
+        java.time.LocalDate date = startedAt.toLocalDate();
+        java.time.LocalDate today = java.time.LocalDate.now();
+        String dayText;
+        if (date.equals(today)) {
+            dayText = "今天";
+        } else if (date.equals(today.plusDays(1))) {
+            dayText = "明天";
+        } else {
+            dayText = startedAt.format(DateTimeFormatter.ofPattern("M月d日"));
+        }
+        return dayText + " " + startedAt.format(DateTimeFormatter.ofPattern("HH:mm"));
+    }
+
+    private String matchLevelText(Double minLevel, Double maxLevel) {
+        if (minLevel == null && maxLevel == null) {
+            return "NTRP不限";
+        }
+        if (minLevel != null && maxLevel != null && Double.compare(minLevel, maxLevel) == 0) {
+            return String.format(Locale.US, "NTRP %.1f", minLevel);
+        }
+        if (minLevel != null && maxLevel != null) {
+            return String.format(Locale.US, "NTRP %.1f-%.1f", minLevel, maxLevel);
+        }
+        return minLevel != null
+                ? String.format(Locale.US, "NTRP %.1f+", minLevel)
+                : String.format(Locale.US, "NTRP %.1f以下", maxLevel);
+    }
+
+    private String matchPriceText(String priceMode, Integer pricePerPerson) {
+        if ("免费".equals(priceMode)) {
+            return "免费";
+        }
+        if ("需要陪练".equals(priceMode)) {
+            return pricePerPerson == null || pricePerPerson <= 0 ? "陪练" : "陪练 ¥" + pricePerPerson;
+        }
+        return pricePerPerson == null || pricePerPerson <= 0 ? "AA" : "AA 约 ¥" + pricePerPerson;
+    }
+
+    private String matchNoteText(String note, Integer neededPlayers) {
+        String normalized = normalizeNullable(note);
+        if (normalized != null) {
+            return normalized;
+        }
+        return "同城约球，缺" + (neededPlayers == null ? 1 : neededPlayers) + "人，一起打球。";
+    }
+
     private String sessionTypeLabel(String sessionType) {
         if ("match".equals(sessionType)) {
             return "比赛";
@@ -1005,6 +1189,7 @@ public class MobileProfileService {
                 .habitCourtsVisible(row != null && booleanValue(rowValue(row, "habit_courts_visible")))
                 .followingListVisible(row != null && booleanValue(rowValue(row, "following_list_visible")))
                 .followerListVisible(row != null && booleanValue(rowValue(row, "follower_list_visible")))
+                .activityRecordsVisible(row != null && booleanValue(rowValue(row, "activity_records_visible")))
                 .build();
     }
 

@@ -12,4 +12,5 @@ public class ProfilePermissionSettingsResponse {
     private Boolean habitCourtsVisible;
     private Boolean followingListVisible;
     private Boolean followerListVisible;
+    private Boolean activityRecordsVisible;
 }

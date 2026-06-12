@@ -48,9 +48,21 @@ public interface MobileProfileMapper {
 
     List<Map<String, Object>> findActivityRecordsByUserId(@Param("userId") String userId);
 
+    List<Map<String, Object>> findVisibleActivityRecordsByFollowing(@Param("userId") String userId);
+
     Map<String, Object> findPlaySessionById(@Param("sessionId") String sessionId);
 
     int insertPlaySession(@Param("values") Map<String, Object> values);
+
+    List<Map<String, Object>> findMatchRequests(
+            @Param("country") String country,
+            @Param("province") String province,
+            @Param("city") String city
+    );
+
+    Map<String, Object> findMatchRequestById(@Param("eventId") String eventId);
+
+    int insertMatchRequest(@Param("values") Map<String, Object> values);
 
     List<CourtDO> searchCourts(
             @Param("country") String country,
