@@ -68,7 +68,7 @@ public class AuthController {
         return ApiResponse.success();
     }
 
-    @RequestMapping(value = "/me", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/me")
     @Operation(summary = "获取当前用户", description = "用 Bearer accessToken 校验当前登录状态")
     public ApiResponse<UserProfileResponse> me(Authentication authentication) {
         UUID userId = (UUID) authentication.getPrincipal();

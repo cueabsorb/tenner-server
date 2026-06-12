@@ -22,7 +22,7 @@ import java.util.UUID;
 public class MobileProfileController {
     private final MobileProfileService mobileProfileService;
 
-    @RequestMapping(value = "/me", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/me")
     @Operation(summary = "获取个人主页编辑资料")
     public ApiResponse<MobileProfileResponse> me(Authentication authentication) {
         try {
@@ -33,7 +33,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/permission-settings", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/permission-settings/detail")
     @Operation(summary = "获取个人主页权限设置")
     public ApiResponse<ProfilePermissionSettingsResponse> getPermissionSettings(Authentication authentication) {
         try {
@@ -192,7 +192,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/habit-courts/search", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/habit-courts/search")
     @Operation(summary = "搜索可添加的常去网球场")
     public ApiResponse<List<HabitCourtResponse>> searchHabitCourts(
             @RequestParam(required = false) String country,
@@ -208,7 +208,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/users/search", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/users/search")
     @Operation(summary = "按名称搜索用户")
     public ApiResponse<List<UserSearchResponse>> searchUsers(
             Authentication authentication,
@@ -229,7 +229,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/users/founder", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/users/founder")
     @Operation(summary = "获取 App 开发者账号")
     public ApiResponse<UserSearchResponse> founderUser(Authentication authentication) {
         try {
@@ -251,7 +251,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/racket-catalog", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/racket-catalog")
     @Operation(summary = "获取球拍基础数据")
     public ApiResponse<List<RacketCatalogResponse>> listRacketCatalog() {
         try {
@@ -262,7 +262,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/racket-catalog/{catalogId}/player-usages", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/racket-catalog/{catalogId}/player-usages")
     @Operation(summary = "获取职业球员使用球拍记录")
     public ApiResponse<List<RacketPlayerUsageResponse>> listRacketPlayerUsages(@PathVariable String catalogId) {
         try {
@@ -273,7 +273,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/activity-records", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/activity-records/list")
     @Operation(summary = "获取精彩记录活动列表")
     public ApiResponse<List<ActivityRecordResponse>> listActivityRecords(
             Authentication authentication,
@@ -365,7 +365,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/match-requests", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/match-requests/search")
     @Operation(summary = "按城市获取约球列表")
     public ApiResponse<List<MatchRequestResponse>> listMatchRequests(
             Authentication authentication,
@@ -436,7 +436,7 @@ public class MobileProfileController {
         }
     }
 
-    @RequestMapping(value = "/courts/{courtId}", method = {RequestMethod.GET, RequestMethod.POST})
+    @PostMapping("/courts/{courtId}")
     @Operation(summary = "获取网球场数据库详情")
     public ApiResponse<HabitCourtResponse> getCourt(Authentication authentication, @PathVariable String courtId) {
         try {
