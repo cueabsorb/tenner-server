@@ -229,6 +229,17 @@ public class MobileProfileController {
         }
     }
 
+    @GetMapping("/users/founder")
+    @Operation(summary = "获取 App 开发者账号")
+    public ApiResponse<UserSearchResponse> founderUser(Authentication authentication) {
+        try {
+            return ApiResponse.success(mobileProfileService.getFounderUser(currentUserId(authentication)));
+        } catch (Exception e) {
+            log.error("Failed to get founder user: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @PostMapping("/users/{targetUserId}/follow")
     @Operation(summary = "关注球友")
     public ApiResponse<UserFollowResponse> followUser(Authentication authentication, @PathVariable String targetUserId) {
@@ -282,10 +293,32 @@ public class MobileProfileController {
             Authentication authentication,
             @Valid @RequestBody ActivityRecordCreateRequest request
     ) {
+        String userId = currentUserId(authentication);
         try {
-            return ApiResponse.success(mobileProfileService.createActivityRecord(currentUserId(authentication), request));
+            return ApiResponse.success(mobileProfileService.createActivityRecord(userId, request));
         } catch (Exception e) {
-            log.error("Failed to create activity record: {}", e.getMessage(), e);
+            log.error("Failed to create activity record for userId={}, startedAt={}, durationMinutes={}, courtId={}: {}",
+                    userId,
+                    request.getStartedAt(),
+                    request.getDurationMinutes(),
+                    request.getCourtId(),
+                    e.getMessage(),
+                    e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/fitness/sync")
+    @Operation(summary = "同步HealthKit健身数据")
+    public ApiResponse<FitnessSyncResponse> syncFitnessData(
+            Authentication authentication,
+            @Valid @RequestBody FitnessSyncRequest request
+    ) {
+        String userId = currentUserId(authentication);
+        try {
+            return ApiResponse.success(mobileProfileService.syncFitnessData(userId, request));
+        } catch (Exception e) {
+            log.error("Failed to sync fitness data for userId={}: {}", userId, e.getMessage(), e);
             throw e;
         }
     }

@@ -89,6 +89,137 @@
             `updated_at` = CURRENT_TIMESTAMP
     </insert>
 
+    <insert id="upsertFitnessSyncSource">
+        INSERT INTO `ir_fitness`.`fitness_sync_sources`
+        (`id`, `user_id`, `source_name`, `source_bundle_id`, `device_name`, `device_model`, `last_sync_at`, `permission_snapshot`, `status`)
+        VALUES
+        (
+            #{id},
+            #{userId},
+            #{values.source_name},
+            #{values.source_bundle_id},
+            #{values.device_name},
+            #{values.device_model},
+            #{values.last_sync_at},
+            #{values.permission_snapshot},
+            0
+        )
+        ON DUPLICATE KEY UPDATE
+            `device_name` = VALUES(`device_name`),
+            `device_model` = VALUES(`device_model`),
+            `last_sync_at` = VALUES(`last_sync_at`),
+            `permission_snapshot` = VALUES(`permission_snapshot`),
+            `status` = 0,
+            `updated_at` = CURRENT_TIMESTAMP
+    </insert>
+
+    <insert id="upsertFitnessWorkoutSession">
+        INSERT INTO `ir_fitness`.`fitness_workout_sessions`
+        (`id`, `user_id`, `healthkit_uuid`, `sport_type`, `started_at`, `ended_at`, `duration_seconds`,
+         `active_energy_kcal`, `basal_energy_kcal`, `total_energy_kcal`, `distance_meters`,
+         `avg_heart_rate`, `max_heart_rate`, `heart_rate_zones`, `pace_seconds_per_km`, `speed_mps`,
+         `elevation_gain_meters`, `cadence`, `stroke_count`, `source_name`, `source_bundle_id`,
+         `device_model`, `notes`, `raw_payload`, `status`)
+        VALUES
+        (
+            #{id},
+            #{userId},
+            #{values.healthkit_uuid},
+            #{values.sport_type},
+            #{values.started_at},
+            #{values.ended_at},
+            #{values.duration_seconds},
+            #{values.active_energy_kcal},
+            #{values.basal_energy_kcal},
+            #{values.total_energy_kcal},
+            #{values.distance_meters},
+            #{values.avg_heart_rate},
+            #{values.max_heart_rate},
+            #{values.heart_rate_zones},
+            #{values.pace_seconds_per_km},
+            #{values.speed_mps},
+            #{values.elevation_gain_meters},
+            #{values.cadence},
+            #{values.stroke_count},
+            #{values.source_name},
+            #{values.source_bundle_id},
+            #{values.device_model},
+            #{values.notes},
+            #{values.raw_payload},
+            0
+        )
+        ON DUPLICATE KEY UPDATE
+            `sport_type` = VALUES(`sport_type`),
+            `started_at` = VALUES(`started_at`),
+            `ended_at` = VALUES(`ended_at`),
+            `duration_seconds` = VALUES(`duration_seconds`),
+            `active_energy_kcal` = VALUES(`active_energy_kcal`),
+            `basal_energy_kcal` = VALUES(`basal_energy_kcal`),
+            `total_energy_kcal` = VALUES(`total_energy_kcal`),
+            `distance_meters` = VALUES(`distance_meters`),
+            `avg_heart_rate` = VALUES(`avg_heart_rate`),
+            `max_heart_rate` = VALUES(`max_heart_rate`),
+            `heart_rate_zones` = VALUES(`heart_rate_zones`),
+            `pace_seconds_per_km` = VALUES(`pace_seconds_per_km`),
+            `speed_mps` = VALUES(`speed_mps`),
+            `elevation_gain_meters` = VALUES(`elevation_gain_meters`),
+            `cadence` = VALUES(`cadence`),
+            `stroke_count` = VALUES(`stroke_count`),
+            `source_name` = VALUES(`source_name`),
+            `source_bundle_id` = VALUES(`source_bundle_id`),
+            `device_model` = VALUES(`device_model`),
+            `notes` = VALUES(`notes`),
+            `raw_payload` = VALUES(`raw_payload`),
+            `status` = 0,
+            `updated_at` = CURRENT_TIMESTAMP
+    </insert>
+
+    <insert id="upsertFitnessDailySummary">
+        INSERT INTO `ir_fitness`.`fitness_daily_summaries`
+        (`id`, `user_id`, `summary_date`, `step_count`, `flights_climbed`, `walking_running_meters`,
+         `cycling_meters`, `swimming_meters`, `basal_energy_kcal`, `active_energy_kcal`,
+         `stand_minutes`, `exercise_minutes`, `activity_ring_kcal`, `exercise_ring_minutes`,
+         `stand_ring_hours`, `source_name`, `raw_payload`, `status`)
+        VALUES
+        (
+            #{id},
+            #{userId},
+            #{values.summary_date},
+            #{values.step_count},
+            #{values.flights_climbed},
+            #{values.walking_running_meters},
+            #{values.cycling_meters},
+            #{values.swimming_meters},
+            #{values.basal_energy_kcal},
+            #{values.active_energy_kcal},
+            #{values.stand_minutes},
+            #{values.exercise_minutes},
+            #{values.activity_ring_kcal},
+            #{values.exercise_ring_minutes},
+            #{values.stand_ring_hours},
+            #{values.source_name},
+            #{values.raw_payload},
+            0
+        )
+        ON DUPLICATE KEY UPDATE
+            `step_count` = VALUES(`step_count`),
+            `flights_climbed` = VALUES(`flights_climbed`),
+            `walking_running_meters` = VALUES(`walking_running_meters`),
+            `cycling_meters` = VALUES(`cycling_meters`),
+            `swimming_meters` = VALUES(`swimming_meters`),
+            `basal_energy_kcal` = VALUES(`basal_energy_kcal`),
+            `active_energy_kcal` = VALUES(`active_energy_kcal`),
+            `stand_minutes` = VALUES(`stand_minutes`),
+            `exercise_minutes` = VALUES(`exercise_minutes`),
+            `activity_ring_kcal` = VALUES(`activity_ring_kcal`),
+            `exercise_ring_minutes` = VALUES(`exercise_ring_minutes`),
+            `stand_ring_hours` = VALUES(`stand_ring_hours`),
+            `source_name` = VALUES(`source_name`),
+            `raw_payload` = VALUES(`raw_payload`),
+            `status` = 0,
+            `updated_at` = CURRENT_TIMESTAMP
+    </insert>
+
     <select id="findActiveTennisProfileByUserId" resultType="map">
         SELECT *
         FROM `ir_profile`.`tennis_profiles`
@@ -256,7 +387,7 @@
                ps.`court_name`,
                ps.`notes`,
                c.`city`,
-               c.`district`,
+               NULL AS `district`,
                c.`address`
         FROM `ir_activity`.`play_sessions` ps
         LEFT JOIN `ir_auth`.`users` u
@@ -285,7 +416,7 @@
                ps.`court_name`,
                ps.`notes`,
                c.`city`,
-               c.`district`,
+               NULL AS `district`,
                c.`address`
         FROM `ir_activity`.`player_relationship_edges` fe
         INNER JOIN `ir_activity`.`play_sessions` ps
@@ -321,7 +452,7 @@
                ps.`court_name`,
                ps.`notes`,
                c.`city`,
-               c.`district`,
+               NULL AS `district`,
                c.`address`
         FROM `ir_activity`.`play_sessions` ps
         LEFT JOIN `ir_auth`.`users` u
@@ -615,7 +746,8 @@
           AND u.`display_name` != ''
           AND u.`id` != #{currentUserId}
           <if test="keyword != null and keyword != ''">
-          AND u.`display_name` LIKE CONCAT('%', #{keyword}, '%')
+          AND (u.`display_name` LIKE CONCAT('%', #{keyword}, '%')
+               OR u.`email` LIKE CONCAT('%', #{keyword}, '%'))
           </if>
         ORDER BY u.`display_name`,
                  hc.`is_primary` DESC,

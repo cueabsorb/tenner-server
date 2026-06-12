@@ -24,6 +24,12 @@ public interface MobileProfileMapper {
             @Param("values") Map<String, Object> values
     );
 
+    int upsertFitnessSyncSource(@Param("id") String id, @Param("userId") String userId, @Param("values") Map<String, Object> values);
+
+    int upsertFitnessWorkoutSession(@Param("id") String id, @Param("userId") String userId, @Param("values") Map<String, Object> values);
+
+    int upsertFitnessDailySummary(@Param("id") String id, @Param("userId") String userId, @Param("values") Map<String, Object> values);
+
     Map<String, Object> findActiveTennisProfileByUserId(@Param("userId") String userId);
 
     int insertTennisProfile(@Param("id") String id, @Param("userId") String userId);

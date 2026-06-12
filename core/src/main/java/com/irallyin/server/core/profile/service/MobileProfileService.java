@@ -9,14 +9,19 @@ import com.irallyin.server.data.domain.CourtDO;
 import com.irallyin.server.data.mapper.MobileProfileMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -26,6 +31,7 @@ import java.util.*;
 public class MobileProfileService {
     private static final String DEFAULT_INTRO = "因热爱而相聚，为梦想而挥拍";
     private static final String MOBILE_ADMIN_EMAIL = "tianfengzhang1984@gmail.com";
+    private static final String FOUNDER_EMAIL = "656619107@qq.com";
     private static final DateTimeFormatter PROFILE_ACTIVITY_DATE_FORMATTER = DateTimeFormatter.ofPattern("M 月 d 日");
     private static final Set<String> SYSTEM_AVATAR_NAMES = Set.of(
             "female-01", "female-02", "female-03", "female-04", "female-05",
@@ -87,6 +93,91 @@ public class MobileProfileService {
     public ProfilePermissionSettingsResponse getPermissionSettings(String userId) {
         requireUser(userId);
         return toPermissionSettingsResponse(mobileProfileMapper.findProfilePermissionSettings(userId));
+    }
+
+    @Transactional
+    public FitnessSyncResponse syncFitnessData(String userId, FitnessSyncRequest request) {
+        requireUser(userId);
+        int workoutCount = 0;
+        int dailySummaryCount = 0;
+        Set<String> syncedSources = new LinkedHashSet<>();
+
+        if (request.getWorkouts() != null) {
+            for (FitnessWorkoutSessionRequest workout : request.getWorkouts()) {
+                Map<String, Object> values = new LinkedHashMap<>();
+                String sourceName = normalizeNullable(workout.getSourceName());
+                values.put("healthkit_uuid", normalize(workout.getHealthkitUuid()));
+                values.put("sport_type", normalize(workout.getSportType()));
+                values.put("started_at", parseFitnessDateTime(workout.getStartedAt(), "训练开始时间"));
+                values.put("ended_at", parseNullableFitnessDateTime(workout.getEndedAt(), "训练结束时间"));
+                values.put("duration_seconds", workout.getDurationSeconds());
+                values.put("active_energy_kcal", workout.getActiveEnergyKcal());
+                values.put("basal_energy_kcal", workout.getBasalEnergyKcal());
+                values.put("total_energy_kcal", workout.getTotalEnergyKcal());
+                values.put("distance_meters", workout.getDistanceMeters());
+                values.put("avg_heart_rate", workout.getAvgHeartRate());
+                values.put("max_heart_rate", workout.getMaxHeartRate());
+                values.put("heart_rate_zones", null);
+                values.put("pace_seconds_per_km", workout.getPaceSecondsPerKm());
+                values.put("speed_mps", workout.getSpeedMps());
+                values.put("elevation_gain_meters", workout.getElevationGainMeters());
+                values.put("cadence", workout.getCadence());
+                values.put("stroke_count", workout.getStrokeCount());
+                values.put("source_name", sourceName);
+                values.put("source_bundle_id", normalizeNullable(workout.getSourceBundleId()));
+                values.put("device_model", normalizeNullable(workout.getDeviceModel()));
+                values.put("notes", normalizeNullable(workout.getNotes()));
+                values.put("raw_payload", null);
+                mobileProfileMapper.upsertFitnessWorkoutSession(UUID.randomUUID().toString(), userId, values);
+                workoutCount++;
+                if (StringUtils.hasText(sourceName)) {
+                    syncedSources.add(sourceName);
+                }
+            }
+        }
+
+        if (request.getDailySummaries() != null) {
+            for (FitnessDailySummaryRequest summary : request.getDailySummaries()) {
+                Map<String, Object> values = new LinkedHashMap<>();
+                String sourceName = normalizeNullable(summary.getSourceName());
+                values.put("summary_date", parseFitnessDate(summary.getSummaryDate()));
+                values.put("step_count", summary.getStepCount());
+                values.put("flights_climbed", summary.getFlightsClimbed());
+                values.put("walking_running_meters", summary.getWalkingRunningMeters());
+                values.put("cycling_meters", summary.getCyclingMeters());
+                values.put("swimming_meters", summary.getSwimmingMeters());
+                values.put("basal_energy_kcal", summary.getBasalEnergyKcal());
+                values.put("active_energy_kcal", summary.getActiveEnergyKcal());
+                values.put("stand_minutes", summary.getStandMinutes());
+                values.put("exercise_minutes", summary.getExerciseMinutes());
+                values.put("activity_ring_kcal", summary.getActivityRingKcal());
+                values.put("exercise_ring_minutes", summary.getExerciseRingMinutes());
+                values.put("stand_ring_hours", summary.getStandRingHours());
+                values.put("source_name", sourceName);
+                values.put("raw_payload", null);
+                mobileProfileMapper.upsertFitnessDailySummary(UUID.randomUUID().toString(), userId, values);
+                dailySummaryCount++;
+                if (StringUtils.hasText(sourceName)) {
+                    syncedSources.add(sourceName);
+                }
+            }
+        }
+
+        for (String sourceName : syncedSources) {
+            Map<String, Object> sourceValues = new LinkedHashMap<>();
+            sourceValues.put("source_name", sourceName);
+            sourceValues.put("source_bundle_id", "");
+            sourceValues.put("device_name", null);
+            sourceValues.put("device_model", null);
+            sourceValues.put("last_sync_at", LocalDateTime.now());
+            sourceValues.put("permission_snapshot", null);
+            mobileProfileMapper.upsertFitnessSyncSource(UUID.randomUUID().toString(), userId, sourceValues);
+        }
+
+        return FitnessSyncResponse.builder()
+                .workoutCount(workoutCount)
+                .dailySummaryCount(dailySummaryCount)
+                .build();
     }
 
     @Transactional
@@ -276,6 +367,41 @@ public class MobileProfileService {
                 .toList();
     }
 
+    public UserSearchResponse getFounderUser(String currentUserId) {
+        String normalizedCurrentUserId = normalizeNullable(currentUserId);
+        Map<String, Object> user = mobileProfileMapper.findUserByEmail(FOUNDER_EMAIL);
+        if (user == null
+                || rowValue(user, "deleted_at") != null
+                || !Objects.equals(integerValue(rowValue(user, "status")), 0)) {
+            throw new BusinessException(10004, "开发者账号不存在");
+        }
+
+        String userId = (String) rowValue(user, "id");
+        boolean isFollowing = StringUtils.hasText(normalizedCurrentUserId)
+                && !normalizedCurrentUserId.equals(userId)
+                && mobileProfileMapper.countFollowRelationship(normalizedCurrentUserId, userId) > 0;
+        List<String> courtNames = mobileProfileMapper.findHabitCourtsByUserId(userId)
+                .stream()
+                .map(row -> (String) rowValue(row, "name"))
+                .filter(StringUtils::hasText)
+                .distinct()
+                .limit(3)
+                .toList();
+
+        return UserSearchResponse.builder()
+                .id(userId)
+                .displayName((String) rowValue(user, "display_name"))
+                .avatarUrl((String) rowValue(user, "avatar_url"))
+                .gender((String) rowValue(user, "gender"))
+                .ntrpRating(numberAsDouble(rowValue(user, "ntrp_rating"), null))
+                .region(regionText(user))
+                .habitCourts(courtNames)
+                .followingCount(mobileProfileMapper.countFollowing(userId))
+                .followerCount(mobileProfileMapper.countFollowers(userId))
+                .isFollowing(isFollowing)
+                .build();
+    }
+
     @Transactional
     public UserFollowResponse followUser(String userId, String targetUserId) {
         requireUser(userId);
@@ -382,7 +508,6 @@ public class MobileProfileService {
         String eventId = UUID.randomUUID().toString();
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("id", eventId);
-        values.put("club_id", userId);
         values.put("organizer_id", userId);
         values.put("title", matchType + "缺" + neededPlayers + "人");
         values.put("court_id", courtId);
@@ -402,7 +527,12 @@ public class MobileProfileService {
         values.put("gender_requirement", normalizeNullable(request.getGenderRequirement()));
         values.put("note", note);
         values.put("max_participants", neededPlayers + 1);
-        mobileProfileMapper.insertMatchRequest(values);
+        try {
+            mobileProfileMapper.insertMatchRequest(values);
+        } catch (DataAccessException e) {
+            log.error("Create match request DB write failed. userId={}, values={}", userId, values, e);
+            throw e;
+        }
         writeEditLog(userId, "match_request");
 
         Map<String, Object> created = mobileProfileMapper.findMatchRequestById(eventId);
@@ -1392,6 +1522,33 @@ public class MobileProfileService {
             return LocalDateTime.parse(normalized.replace(" ", "T"));
         } catch (RuntimeException e) {
             throw new BusinessException(10001, "开始时间格式不正确");
+        }
+    }
+
+    private LocalDateTime parseFitnessDateTime(String value, String fieldName) {
+        String normalized = normalize(value);
+        try {
+            return OffsetDateTime.parse(normalized).atZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        } catch (DateTimeParseException ignored) {
+            try {
+                return LocalDateTime.parse(normalized.replace(" ", "T"));
+            } catch (DateTimeParseException e) {
+                throw new BusinessException(10001, fieldName + "格式不正确");
+            }
+        }
+    }
+
+    private LocalDateTime parseNullableFitnessDateTime(String value, String fieldName) {
+        String normalized = normalizeNullable(value);
+        return normalized == null ? null : parseFitnessDateTime(normalized, fieldName);
+    }
+
+    private LocalDate parseFitnessDate(String value) {
+        String normalized = normalize(value);
+        try {
+            return LocalDate.parse(normalized);
+        } catch (DateTimeParseException e) {
+            throw new BusinessException(10001, "汇总日期格式不正确");
         }
     }
 
