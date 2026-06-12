@@ -308,6 +308,20 @@ public class MobileProfileController {
         }
     }
 
+    @PostMapping("/activity-records/{recordId}/likes")
+    @Operation(summary = "点赞精彩记录")
+    public ApiResponse<ActivityRecordResponse> likeActivityRecord(
+            Authentication authentication,
+            @PathVariable String recordId
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.likeActivityRecord(currentUserId(authentication), recordId));
+        } catch (Exception e) {
+            log.error("Failed to like activity record {}: {}", recordId, e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @PostMapping("/fitness/sync")
     @Operation(summary = "同步HealthKit健身数据")
     public ApiResponse<FitnessSyncResponse> syncFitnessData(

@@ -449,8 +449,22 @@ public class MobileProfileService {
                 : mobileProfileMapper.findActivityRecordsByUserId(userId);
         return rows
                 .stream()
-                .map(this::toActivityRecordResponse)
+                .map(row -> toActivityRecordResponse(row, userId))
                 .toList();
+    }
+
+    @Transactional
+    public ActivityRecordResponse likeActivityRecord(String userId, String recordId) {
+        requireUser(userId);
+        Map<String, Object> record = mobileProfileMapper.findPlaySessionById(recordId, userId);
+        if (record == null) {
+            throw new BusinessException(10004, "活动记录不存在");
+        }
+        String ownerId = (String) rowValue(record, "owner_id");
+        mobileProfileMapper.insertActivityRecordLikeDetail(UUID.randomUUID().toString(), recordId, userId);
+        mobileProfileMapper.upsertActivityRecordLikeStats(recordId, ownerId);
+        Map<String, Object> updated = mobileProfileMapper.findPlaySessionById(recordId, userId);
+        return toActivityRecordResponse(updated == null ? record : updated, userId);
     }
 
     public List<MatchRequestResponse> listMatchRequests(String userId, String country, String province, String city) {
@@ -579,7 +593,7 @@ public class MobileProfileService {
         mobileProfileMapper.insertPlaySession(values);
         writeEditLog(userId, "activity_record");
 
-        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId);
+        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId, userId);
         if (created == null) {
             created = new LinkedHashMap<>(values);
             created.put("owner_name", rowValue(user, "display_name"));
@@ -587,7 +601,7 @@ public class MobileProfileService {
             created.put("city", court == null ? null : court.getCity());
             created.put("address", court == null ? null : court.getAddress());
         }
-        return toActivityRecordResponse(created);
+        return toActivityRecordResponse(created, userId);
     }
 
     public List<FitnessWorkoutImportStatusResponse> findFitnessWorkoutImportStatuses(
@@ -618,7 +632,7 @@ public class MobileProfileService {
         String healthkitUuid = normalize(request.getHealthkitUuid());
         Map<String, Object> existing = mobileProfileMapper.findPlaySessionByHealthkitUuid(userId, healthkitUuid);
         if (existing != null) {
-            return toActivityRecordResponse(existing);
+            return toActivityRecordResponse(existing, userId);
         }
 
         LocalDateTime startedAt = parseFitnessDateTime(request.getStartedAt(), "训练开始时间");
@@ -661,13 +675,13 @@ public class MobileProfileService {
         mobileProfileMapper.insertPlaySession(values);
         writeEditLog(userId, "fitness_activity_record");
 
-        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId);
+        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId, userId);
         if (created == null) {
             created = new LinkedHashMap<>(values);
             created.put("owner_name", rowValue(user, "display_name"));
             created.put("owner_avatar_url", rowValue(user, "avatar_url"));
         }
-        return toActivityRecordResponse(created);
+        return toActivityRecordResponse(created, userId);
     }
 
     private String fitnessSportLabel(String sportType) {
@@ -1082,7 +1096,7 @@ public class MobileProfileService {
                 .build();
     }
 
-    private ActivityRecordResponse toActivityRecordResponse(Map<String, Object> row) {
+    private ActivityRecordResponse toActivityRecordResponse(Map<String, Object> row, String viewerUserId) {
         LocalDateTime startedAt = localDateTimeValue(rowValue(row, "started_at"));
         String courtName = normalizeNullable((String) rowValue(row, "court_name"));
         String notes = normalizeNullable((String) rowValue(row, "notes"));
@@ -1128,8 +1142,25 @@ public class MobileProfileService {
                 .body(notes == null ? (courtName == null ? "运动记录已保存" : courtName) : notes)
                 .metrics(metrics)
                 .badges(0)
-                .likeCount(0)
+                .likeCount(Optional.ofNullable(integerValue(rowValue(row, "like_count"))).orElse(0))
+                .likedByMe(booleanValue(rowValue(row, "liked_by_me")))
+                .recentLikers(toActivityRecordLikers((String) rowValue(row, "id")))
                 .build();
+    }
+
+    private List<ActivityRecordResponse.ActivityRecordLikerResponse> toActivityRecordLikers(String sessionId) {
+        if (!StringUtils.hasText(sessionId)) {
+            return List.of();
+        }
+        return mobileProfileMapper.findRecentActivityRecordLikers(sessionId)
+                .stream()
+                .map(row -> ActivityRecordResponse.ActivityRecordLikerResponse.builder()
+                        .userId((String) rowValue(row, "user_id"))
+                        .displayName(Optional.ofNullable(normalizeNullable((String) rowValue(row, "display_name"))).orElse("球友"))
+                        .avatarUrl((String) rowValue(row, "avatar_url"))
+                        .likeCount(Optional.ofNullable(integerValue(rowValue(row, "like_count"))).orElse(0))
+                        .build())
+                .toList();
     }
 
     private MatchRequestResponse toMatchRequestResponse(Map<String, Object> row) {
@@ -1218,6 +1249,9 @@ public class MobileProfileService {
         }
         if ("需要陪练".equals(priceMode)) {
             return pricePerPerson == null || pricePerPerson <= 0 ? "陪练" : "陪练 ¥" + pricePerPerson;
+        }
+        if ("可以陪练".equals(priceMode)) {
+            return pricePerPerson == null || pricePerPerson <= 0 ? "可陪练" : "可陪练 ¥" + pricePerPerson;
         }
         return pricePerPerson == null || pricePerPerson <= 0 ? "AA" : "AA 约 ¥" + pricePerPerson;
     }

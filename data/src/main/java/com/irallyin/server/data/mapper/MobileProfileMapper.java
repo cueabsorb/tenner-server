@@ -56,7 +56,23 @@ public interface MobileProfileMapper {
 
     List<Map<String, Object>> findVisibleActivityRecordsByFollowing(@Param("userId") String userId);
 
-    Map<String, Object> findPlaySessionById(@Param("sessionId") String sessionId);
+    Map<String, Object> findPlaySessionById(
+            @Param("sessionId") String sessionId,
+            @Param("viewerUserId") String viewerUserId
+    );
+
+    int insertActivityRecordLikeDetail(
+            @Param("id") String id,
+            @Param("sessionId") String sessionId,
+            @Param("likerUserId") String likerUserId
+    );
+
+    int upsertActivityRecordLikeStats(
+            @Param("sessionId") String sessionId,
+            @Param("ownerId") String ownerId
+    );
+
+    List<Map<String, Object>> findRecentActivityRecordLikers(@Param("sessionId") String sessionId);
 
     List<String> findImportedPlaySessionHealthkitUuids(
             @Param("userId") String userId,

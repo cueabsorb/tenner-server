@@ -18,11 +18,22 @@ public class ActivityRecordResponse {
     private List<FeedMetricResponse> metrics;
     private Integer badges;
     private Integer likeCount;
+    private Boolean likedByMe;
+    private List<ActivityRecordLikerResponse> recentLikers;
 
     @Data
     @Builder
     public static class FeedMetricResponse {
         private String label;
         private String value;
+    }
+
+    @Data
+    @Builder
+    public static class ActivityRecordLikerResponse {
+        private String userId;
+        private String displayName;
+        private String avatarUrl;
+        private Integer likeCount;
     }
 }

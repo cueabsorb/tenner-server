@@ -386,6 +386,8 @@
                ps.`court_id`,
                ps.`court_name`,
                ps.`notes`,
+               COALESCE(ars.`total_like_count`, 0) AS `like_count`,
+               CASE WHEN arl.`id` IS NULL THEN 0 ELSE 1 END AS `liked_by_me`,
                c.`city`,
                NULL AS `district`,
                c.`address`
@@ -396,6 +398,12 @@
         LEFT JOIN `ir_profile`.`courts` c
           ON c.`id` = ps.`court_id`
          AND c.`status` = 0
+        LEFT JOIN `ir_activity`.`activity_record_like_stats` ars
+          ON ars.`session_id` = ps.`id`
+        LEFT JOIN `ir_activity`.`activity_record_likes` arl
+          ON arl.`session_id` = ps.`id`
+         AND arl.`liker_user_id` = #{userId}
+         AND arl.`status` = 0
         WHERE ps.`owner_id` = #{userId}
           AND ps.`status` = 0
         ORDER BY ps.`started_at` DESC
@@ -414,6 +422,8 @@
                ps.`court_id`,
                ps.`court_name`,
                ps.`notes`,
+               COALESCE(ars.`total_like_count`, 0) AS `like_count`,
+               CASE WHEN arl.`id` IS NULL THEN 0 ELSE 1 END AS `liked_by_me`,
                c.`city`,
                NULL AS `district`,
                c.`address`
@@ -431,7 +441,14 @@
         LEFT JOIN `ir_profile`.`courts` c
           ON c.`id` = ps.`court_id`
          AND c.`status` = 0
+        LEFT JOIN `ir_activity`.`activity_record_like_stats` ars
+          ON ars.`session_id` = ps.`id`
+        LEFT JOIN `ir_activity`.`activity_record_likes` arl
+          ON arl.`session_id` = ps.`id`
+         AND arl.`liker_user_id` = #{userId}
+         AND arl.`status` = 0
         WHERE fe.`user_id` = #{userId}
+          AND ps.`owner_id` &lt;&gt; #{userId}
           AND fe.`status` = 0
         ORDER BY ps.`started_at` DESC
         LIMIT 100
@@ -449,6 +466,8 @@
                ps.`court_id`,
                ps.`court_name`,
                ps.`notes`,
+               COALESCE(ars.`total_like_count`, 0) AS `like_count`,
+               CASE WHEN arl.`id` IS NULL THEN 0 ELSE 1 END AS `liked_by_me`,
                c.`city`,
                NULL AS `district`,
                c.`address`
@@ -459,9 +478,52 @@
         LEFT JOIN `ir_profile`.`courts` c
           ON c.`id` = ps.`court_id`
          AND c.`status` = 0
+        LEFT JOIN `ir_activity`.`activity_record_like_stats` ars
+          ON ars.`session_id` = ps.`id`
+        LEFT JOIN `ir_activity`.`activity_record_likes` arl
+          ON arl.`session_id` = ps.`id`
+         AND arl.`liker_user_id` = #{viewerUserId}
+         AND arl.`status` = 0
         WHERE ps.`id` = #{sessionId}
           AND ps.`status` = 0
         LIMIT 1
+    </select>
+
+    <insert id="insertActivityRecordLikeDetail">
+        INSERT INTO `ir_activity`.`activity_record_likes`
+            (`id`, `session_id`, `liker_user_id`, `like_count`, `status`)
+        VALUES
+            (#{id}, #{sessionId}, #{likerUserId}, 1, 0)
+        ON DUPLICATE KEY UPDATE
+            `like_count` = `like_count` + 1,
+            `last_liked_at` = CURRENT_TIMESTAMP,
+            `status` = 0
+    </insert>
+
+    <insert id="upsertActivityRecordLikeStats">
+        INSERT INTO `ir_activity`.`activity_record_like_stats`
+            (`session_id`, `owner_id`, `total_like_count`, `last_liked_at`)
+        VALUES
+            (#{sessionId}, #{ownerId}, 1, CURRENT_TIMESTAMP)
+        ON DUPLICATE KEY UPDATE
+            `owner_id` = VALUES(`owner_id`),
+            `total_like_count` = `total_like_count` + 1,
+            `last_liked_at` = CURRENT_TIMESTAMP
+    </insert>
+
+    <select id="findRecentActivityRecordLikers" resultType="map">
+        SELECT arl.`liker_user_id` AS `user_id`,
+               u.`display_name`,
+               u.`avatar_url`,
+               arl.`like_count`
+        FROM `ir_activity`.`activity_record_likes` arl
+        LEFT JOIN `ir_auth`.`users` u
+          ON u.`id` = arl.`liker_user_id`
+         AND u.`status` = 0
+        WHERE arl.`session_id` = #{sessionId}
+          AND arl.`status` = 0
+        ORDER BY arl.`last_liked_at` DESC
+        LIMIT 3
     </select>
 
     <select id="findImportedPlaySessionHealthkitUuids" resultType="string">
