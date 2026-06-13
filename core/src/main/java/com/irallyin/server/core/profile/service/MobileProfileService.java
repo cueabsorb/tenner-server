@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -104,31 +105,19 @@ public class MobileProfileService {
 
         if (request.getWorkouts() != null) {
             for (FitnessWorkoutSessionRequest workout : request.getWorkouts()) {
-                Map<String, Object> values = new LinkedHashMap<>();
-                String sourceName = normalizeNullable(workout.getSourceName());
-                values.put("healthkit_uuid", normalize(workout.getHealthkitUuid()));
-                values.put("sport_type", normalize(workout.getSportType()));
-                values.put("started_at", parseFitnessDateTime(workout.getStartedAt(), "训练开始时间"));
-                values.put("ended_at", parseNullableFitnessDateTime(workout.getEndedAt(), "训练结束时间"));
-                values.put("duration_seconds", workout.getDurationSeconds());
-                values.put("active_energy_kcal", workout.getActiveEnergyKcal());
-                values.put("basal_energy_kcal", workout.getBasalEnergyKcal());
-                values.put("total_energy_kcal", workout.getTotalEnergyKcal());
-                values.put("distance_meters", workout.getDistanceMeters());
-                values.put("avg_heart_rate", workout.getAvgHeartRate());
-                values.put("max_heart_rate", workout.getMaxHeartRate());
-                values.put("heart_rate_zones", null);
-                values.put("pace_seconds_per_km", workout.getPaceSecondsPerKm());
-                values.put("speed_mps", workout.getSpeedMps());
-                values.put("elevation_gain_meters", workout.getElevationGainMeters());
-                values.put("cadence", workout.getCadence());
-                values.put("stroke_count", workout.getStrokeCount());
-                values.put("source_name", sourceName);
-                values.put("source_bundle_id", normalizeNullable(workout.getSourceBundleId()));
-                values.put("device_model", normalizeNullable(workout.getDeviceModel()));
-                values.put("notes", normalizeNullable(workout.getNotes()));
-                values.put("raw_payload", null);
-                mobileProfileMapper.upsertFitnessWorkoutSession(UUID.randomUUID().toString(), userId, values);
+                Map<String, Object> values = fitnessWorkoutValues(workout);
+                String sourceName = (String) values.get("source_name");
+                try {
+                    mobileProfileMapper.upsertFitnessWorkoutSession(UUID.randomUUID().toString(), userId, values);
+                } catch (DataAccessException e) {
+                    logDataAccessFailure("Sync fitness workout DB upsert failed", e,
+                            "userId", userId,
+                            "healthkitUuid", values.get("healthkit_uuid"),
+                            "sportType", values.get("sport_type"),
+                            "startedAt", values.get("started_at"),
+                            "values", values);
+                    throw e;
+                }
                 workoutCount++;
                 if (StringUtils.hasText(sourceName)) {
                     syncedSources.add(sourceName);
@@ -155,7 +144,16 @@ public class MobileProfileService {
                 values.put("stand_ring_hours", summary.getStandRingHours());
                 values.put("source_name", sourceName);
                 values.put("raw_payload", null);
-                mobileProfileMapper.upsertFitnessDailySummary(UUID.randomUUID().toString(), userId, values);
+                try {
+                    mobileProfileMapper.upsertFitnessDailySummary(UUID.randomUUID().toString(), userId, values);
+                } catch (DataAccessException e) {
+                    logDataAccessFailure("Sync fitness daily summary DB upsert failed", e,
+                            "userId", userId,
+                            "summaryDate", values.get("summary_date"),
+                            "sourceName", values.get("source_name"),
+                            "values", values);
+                    throw e;
+                }
                 dailySummaryCount++;
                 if (StringUtils.hasText(sourceName)) {
                     syncedSources.add(sourceName);
@@ -171,7 +169,15 @@ public class MobileProfileService {
             sourceValues.put("device_model", null);
             sourceValues.put("last_sync_at", LocalDateTime.now());
             sourceValues.put("permission_snapshot", null);
-            mobileProfileMapper.upsertFitnessSyncSource(UUID.randomUUID().toString(), userId, sourceValues);
+            try {
+                mobileProfileMapper.upsertFitnessSyncSource(UUID.randomUUID().toString(), userId, sourceValues);
+            } catch (DataAccessException e) {
+                logDataAccessFailure("Sync fitness source DB upsert failed", e,
+                        "userId", userId,
+                        "sourceName", sourceName,
+                        "values", sourceValues);
+                throw e;
+            }
         }
 
         return FitnessSyncResponse.builder()
@@ -590,10 +596,28 @@ public class MobileProfileService {
         values.put("court_name", court == null ? null : court.getName());
         values.put("notes", StringUtils.hasText(partnerName) ? "跟 " + partnerName : null);
         values.put("privacy_level", "matchedPlayers");
-        mobileProfileMapper.insertPlaySession(values);
-        writeEditLog(userId, "activity_record");
+        try {
+            mobileProfileMapper.insertPlaySession(values);
+        } catch (DataAccessException e) {
+            logDataAccessFailure("Create activity record DB write failed", e,
+                    "userId", userId,
+                    "startedAt", startedAt,
+                    "durationMinutes", durationMinutes,
+                    "courtId", courtId,
+                    "values", values);
+            throw e;
+        }
+        tryWriteEditLog(userId, "activity_record", "activity record create");
 
-        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId, userId);
+        Map<String, Object> created;
+        try {
+            created = mobileProfileMapper.findPlaySessionById(sessionId, userId);
+        } catch (DataAccessException e) {
+            logDataAccessFailure("Query created activity record DB failed", e,
+                    "userId", userId,
+                    "sessionId", sessionId);
+            created = null;
+        }
         if (created == null) {
             created = new LinkedHashMap<>(values);
             created.put("owner_name", rowValue(user, "display_name"));
@@ -621,11 +645,10 @@ public class MobileProfileService {
         try {
             imported = new HashSet<>(mobileProfileMapper.findImportedPlaySessionHealthkitUuids(userId, uuids));
         } catch (DataAccessException e) {
-            log.error("Query fitness workout import statuses DB failed. userId={}, uuidCount={}, sampleUuids={}",
-                    userId,
-                    uuids.size(),
-                    sampleValues(uuids, 5),
-                    e);
+            logDataAccessFailure("Query fitness workout import statuses DB failed", e,
+                    "userId", userId,
+                    "uuidCount", uuids.size(),
+                    "sampleUuids", sampleValues(uuids, 5));
             throw e;
         }
         return uuids.stream()
@@ -644,14 +667,29 @@ public class MobileProfileService {
         try {
             existing = mobileProfileMapper.findPlaySessionByHealthkitUuid(userId, healthkitUuid);
         } catch (DataAccessException e) {
-            log.error("Query imported fitness workout DB failed. userId={}, healthkitUuid={}",
-                    userId,
-                    healthkitUuid,
-                    e);
-            throw e;
+            logDataAccessFailure("Query imported fitness workout DB failed, continue to insert", e,
+                    "userId", userId,
+                    "healthkitUuid", healthkitUuid);
+            existing = null;
         }
         if (existing != null) {
             return toActivityRecordResponse(existing, userId);
+        }
+
+        try {
+            Map<String, Object> workoutValues = fitnessWorkoutValues(request);
+            mobileProfileMapper.upsertFitnessWorkoutSession(UUID.randomUUID().toString(), userId, workoutValues);
+            log.info("Imported HealthKit workout raw record saved. userId={}, healthkitUuid={}, sportType={}, startedAt={}",
+                    userId,
+                    workoutValues.get("healthkit_uuid"),
+                    workoutValues.get("sport_type"),
+                    workoutValues.get("started_at"));
+        } catch (DataAccessException e) {
+            logDataAccessFailure("Import fitness workout raw record DB upsert failed, continue to create activity record", e,
+                    "userId", userId,
+                    "healthkitUuid", healthkitUuid,
+                    "sportType", request.getSportType(),
+                    "startedAt", request.getStartedAt());
         }
 
         LocalDateTime startedAt = parseFitnessDateTime(request.getStartedAt(), "训练开始时间");
@@ -664,11 +702,11 @@ public class MobileProfileService {
         }
 
         String sportType = Optional.ofNullable(normalizeNullable(request.getSportType())).orElse("other");
-        String playSessionSportType = fitnessPlaySessionSportType(sportType);
         String sportLabel = fitnessSportLabel(sportType);
         String title = sportLabel + "运动记录";
 
         List<String> noteParts = new ArrayList<>();
+        noteParts.add("运动类型 " + sportLabel);
         if (request.getTotalEnergyKcal() != null || request.getActiveEnergyKcal() != null) {
             Double kcal = request.getTotalEnergyKcal() != null ? request.getTotalEnergyKcal() : request.getActiveEnergyKcal();
             noteParts.add("热量 " + Math.round(kcal) + " 千卡");
@@ -681,7 +719,7 @@ public class MobileProfileService {
         Map<String, Object> values = new LinkedHashMap<>();
         values.put("id", sessionId);
         values.put("owner_id", userId);
-        values.put("sport_type", playSessionSportType);
+        values.put("sport_type", "tennis");
         values.put("session_type", "training");
         values.put("title", title);
         values.put("started_at", startedAt);
@@ -694,24 +732,60 @@ public class MobileProfileService {
         values.put("healthkit_uuid", healthkitUuid);
         try {
             mobileProfileMapper.insertPlaySession(values);
-            writeEditLog(userId, "fitness_activity_record");
         } catch (DataAccessException e) {
-            log.error("Import fitness workout DB write failed. userId={}, healthkitUuid={}, startedAt={}, values={}",
-                    userId,
-                    healthkitUuid,
-                    startedAt,
-                    values,
-                    e);
+            logDataAccessFailure("Import fitness workout DB write failed", e,
+                    "userId", userId,
+                    "healthkitUuid", healthkitUuid,
+                    "startedAt", startedAt,
+                    "durationMinutes", durationMinutes,
+                    "values", values);
             throw e;
         }
+        tryWriteEditLog(userId, "fitness_activity_record", "fitness workout import");
 
-        Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId, userId);
+        Map<String, Object> created;
+        try {
+            created = mobileProfileMapper.findPlaySessionById(sessionId, userId);
+        } catch (DataAccessException e) {
+            logDataAccessFailure("Query imported fitness workout activity record DB failed", e,
+                    "userId", userId,
+                    "sessionId", sessionId,
+                    "healthkitUuid", healthkitUuid);
+            created = null;
+        }
         if (created == null) {
             created = new LinkedHashMap<>(values);
             created.put("owner_name", rowValue(user, "display_name"));
             created.put("owner_avatar_url", rowValue(user, "avatar_url"));
         }
         return toActivityRecordResponse(created, userId);
+    }
+
+    private Map<String, Object> fitnessWorkoutValues(FitnessWorkoutSessionRequest workout) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("healthkit_uuid", normalize(workout.getHealthkitUuid()));
+        values.put("sport_type", normalize(workout.getSportType()));
+        values.put("started_at", parseFitnessDateTime(workout.getStartedAt(), "训练开始时间"));
+        values.put("ended_at", parseNullableFitnessDateTime(workout.getEndedAt(), "训练结束时间"));
+        values.put("duration_seconds", workout.getDurationSeconds());
+        values.put("active_energy_kcal", workout.getActiveEnergyKcal());
+        values.put("basal_energy_kcal", workout.getBasalEnergyKcal());
+        values.put("total_energy_kcal", workout.getTotalEnergyKcal());
+        values.put("distance_meters", workout.getDistanceMeters());
+        values.put("avg_heart_rate", workout.getAvgHeartRate());
+        values.put("max_heart_rate", workout.getMaxHeartRate());
+        values.put("heart_rate_zones", null);
+        values.put("pace_seconds_per_km", workout.getPaceSecondsPerKm());
+        values.put("speed_mps", workout.getSpeedMps());
+        values.put("elevation_gain_meters", workout.getElevationGainMeters());
+        values.put("cadence", workout.getCadence());
+        values.put("stroke_count", workout.getStrokeCount());
+        values.put("source_name", normalizeNullable(workout.getSourceName()));
+        values.put("source_bundle_id", normalizeNullable(workout.getSourceBundleId()));
+        values.put("device_model", normalizeNullable(workout.getDeviceModel()));
+        values.put("notes", normalizeNullable(workout.getNotes()));
+        values.put("raw_payload", null);
+        return values;
     }
 
     private String fitnessSportLabel(String sportType) {
@@ -942,6 +1016,14 @@ public class MobileProfileService {
             mobileProfileMapper.insertCourtChangeRequest(values);
         } catch (DuplicateKeyException e) {
             throw new BusinessException(10001, "该网球场已有修改申请正在审核中");
+        }
+        int updated = mobileProfileMapper.markCourtPendingReviewForChange(courtId);
+        if (updated != 1) {
+            log.error("Failed to mark court pending review after change request. courtId={}, userId={}, updated={}",
+                    courtId,
+                    userId,
+                    updated);
+            throw new BusinessException(10001, "网球场状态已变化，请刷新后重试");
         }
         writeEditLog(userId, "court_change_request");
 
@@ -1203,15 +1285,21 @@ public class MobileProfileService {
         if (!StringUtils.hasText(sessionId)) {
             return List.of();
         }
-        return mobileProfileMapper.findRecentActivityRecordLikers(sessionId)
-                .stream()
-                .map(row -> ActivityRecordResponse.ActivityRecordLikerResponse.builder()
-                        .userId((String) rowValue(row, "user_id"))
-                        .displayName(Optional.ofNullable(normalizeNullable((String) rowValue(row, "display_name"))).orElse("球友"))
-                        .avatarUrl((String) rowValue(row, "avatar_url"))
-                        .likeCount(Optional.ofNullable(integerValue(rowValue(row, "like_count"))).orElse(0))
-                        .build())
-                .toList();
+        try {
+            return mobileProfileMapper.findRecentActivityRecordLikers(sessionId)
+                    .stream()
+                    .map(row -> ActivityRecordResponse.ActivityRecordLikerResponse.builder()
+                            .userId((String) rowValue(row, "user_id"))
+                            .displayName(Optional.ofNullable(normalizeNullable((String) rowValue(row, "display_name"))).orElse("球友"))
+                            .avatarUrl((String) rowValue(row, "avatar_url"))
+                            .likeCount(Optional.ofNullable(integerValue(rowValue(row, "like_count"))).orElse(0))
+                            .build())
+                    .toList();
+        } catch (DataAccessException e) {
+            logDataAccessFailure("Query activity record recent likers DB failed, return empty likers", e,
+                    "sessionId", sessionId);
+            return List.of();
+        }
     }
 
     private MatchRequestResponse toMatchRequestResponse(Map<String, Object> row) {
@@ -1607,6 +1695,62 @@ public class MobileProfileService {
 
     private void writeEditLog(String userId, String fieldName) {
         mobileProfileMapper.insertEditLog(UUID.randomUUID().toString(), userId, fieldName);
+    }
+
+    private void tryWriteEditLog(String userId, String fieldName, String scene) {
+        try {
+            writeEditLog(userId, fieldName);
+        } catch (DataAccessException e) {
+            logDataAccessFailure("Profile edit audit log DB write failed", e,
+                    "scene", scene,
+                    "userId", userId,
+                    "fieldName", fieldName);
+        }
+    }
+
+    private void logDataAccessFailure(String message, DataAccessException error, Object... context) {
+        Throwable root = rootCause(error);
+        SQLException sqlException = findSqlException(error);
+        log.error("{}: context={}, exceptionClass={}, exceptionMessage={}, rootClass={}, rootMessage={}, sqlState={}, vendorErrorCode={}",
+                message,
+                contextMap(context),
+                error.getClass().getName(),
+                error.getMessage(),
+                root == null ? null : root.getClass().getName(),
+                root == null ? null : root.getMessage(),
+                sqlException == null ? null : sqlException.getSQLState(),
+                sqlException == null ? null : sqlException.getErrorCode(),
+                error);
+    }
+
+    private Map<String, Object> contextMap(Object... context) {
+        Map<String, Object> values = new LinkedHashMap<>();
+        if (context == null) {
+            return values;
+        }
+        for (int i = 0; i + 1 < context.length; i += 2) {
+            values.put(String.valueOf(context[i]), context[i + 1]);
+        }
+        return values;
+    }
+
+    private Throwable rootCause(Throwable error) {
+        Throwable current = error;
+        while (current != null && current.getCause() != null && current.getCause() != current) {
+            current = current.getCause();
+        }
+        return current;
+    }
+
+    private SQLException findSqlException(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof SQLException sqlException) {
+                return sqlException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 
     private String normalize(String value) {

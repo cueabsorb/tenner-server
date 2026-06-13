@@ -96,4 +96,4 @@ logging:
   file:
     path: ${irallyin.vars.logging.log-path:../log}
   level:
-    com.irallyin.server: DEBUG
+    com.irallyin.server: INFO

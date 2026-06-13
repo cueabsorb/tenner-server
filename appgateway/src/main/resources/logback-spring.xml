@@ -48,7 +48,7 @@
 
     <!-- Dev profile -->
     <springProfile name="dev">
-        <logger name="com.irallyin.server" level="DEBUG"/>
+        <logger name="com.irallyin.server" level="INFO"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>

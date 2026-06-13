@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -329,10 +330,23 @@ public class MobileProfileController {
             @Valid @RequestBody FitnessSyncRequest request
     ) {
         String userId = currentUserId(authentication);
+        int workoutCount = request.getWorkouts() == null ? 0 : request.getWorkouts().size();
+        int dailySummaryCount = request.getDailySummaries() == null ? 0 : request.getDailySummaries().size();
+        log.info("Fitness sync request received. userId={}, workoutCount={}, dailySummaryCount={}, sampleWorkoutUuids={}",
+                userId,
+                workoutCount,
+                dailySummaryCount,
+                request.getWorkouts() == null
+                        ? List.of()
+                        : request.getWorkouts().stream().limit(5).map(FitnessWorkoutSessionRequest::getHealthkitUuid).toList());
         try {
             return ApiResponse.success(mobileProfileService.syncFitnessData(userId, request));
         } catch (Exception e) {
-            log.error("Failed to sync fitness data for userId={}: {}", userId, e.getMessage(), e);
+            logControllerFailure("Failed to sync fitness data",
+                    e,
+                    "userId", userId,
+                    "workoutCount", workoutCount,
+                    "dailySummaryCount", dailySummaryCount);
             throw e;
         }
     }
@@ -343,10 +357,20 @@ public class MobileProfileController {
             Authentication authentication,
             @Valid @RequestBody FitnessWorkoutImportStatusRequest request
     ) {
+        String userId = currentUserId(authentication);
+        List<String> uuids = request.getHealthkitUuids() == null ? List.of() : request.getHealthkitUuids();
+        log.info("Fitness workout import-status request received. userId={}, uuidCount={}, sampleUuids={}",
+                userId,
+                uuids.size(),
+                uuids.stream().limit(5).toList());
         try {
-            return ApiResponse.success(mobileProfileService.findFitnessWorkoutImportStatuses(currentUserId(authentication), request));
+            return ApiResponse.success(mobileProfileService.findFitnessWorkoutImportStatuses(userId, request));
         } catch (Exception e) {
-            log.error("Failed to query fitness workout import statuses: {}", e.getMessage(), e);
+            logControllerFailure("Failed to query fitness workout import statuses",
+                    e,
+                    "userId", userId,
+                    "uuidCount", uuids.size(),
+                    "sampleUuids", uuids.stream().limit(5).toList());
             throw e;
         }
     }
@@ -357,10 +381,26 @@ public class MobileProfileController {
             Authentication authentication,
             @Valid @RequestBody FitnessWorkoutSessionRequest request
     ) {
+        String userId = currentUserId(authentication);
+        log.info("Fitness workout import request received. userId={}, healthkitUuid={}, sportType={}, startedAt={}, endedAt={}, durationSeconds={}, sourceName={}, sourceBundleId={}",
+                userId,
+                request.getHealthkitUuid(),
+                request.getSportType(),
+                request.getStartedAt(),
+                request.getEndedAt(),
+                request.getDurationSeconds(),
+                request.getSourceName(),
+                request.getSourceBundleId());
         try {
-            return ApiResponse.success(mobileProfileService.importFitnessWorkoutAsActivityRecord(currentUserId(authentication), request));
+            return ApiResponse.success(mobileProfileService.importFitnessWorkoutAsActivityRecord(userId, request));
         } catch (Exception e) {
-            log.error("Failed to import fitness workout as activity record: {}", e.getMessage(), e);
+            logControllerFailure("Failed to import fitness workout as activity record",
+                    e,
+                    "userId", userId,
+                    "healthkitUuid", request.getHealthkitUuid(),
+                    "sportType", request.getSportType(),
+                    "startedAt", request.getStartedAt(),
+                    "durationSeconds", request.getDurationSeconds());
             throw e;
         }
     }
@@ -511,5 +551,50 @@ public class MobileProfileController {
 
     private String currentUserId(Authentication authentication) {
         return ((UUID) authentication.getPrincipal()).toString();
+    }
+
+    private void logControllerFailure(String message, Throwable error, Object... context) {
+        Throwable root = rootCause(error);
+        SQLException sqlException = findSqlException(error);
+        log.error("{}: context={}, exceptionClass={}, exceptionMessage={}, rootClass={}, rootMessage={}, sqlState={}, vendorErrorCode={}",
+                message,
+                contextMap(context),
+                error.getClass().getName(),
+                error.getMessage(),
+                root == null ? null : root.getClass().getName(),
+                root == null ? null : root.getMessage(),
+                sqlException == null ? null : sqlException.getSQLState(),
+                sqlException == null ? null : sqlException.getErrorCode(),
+                error);
+    }
+
+    private java.util.Map<String, Object> contextMap(Object... context) {
+        java.util.Map<String, Object> values = new java.util.LinkedHashMap<>();
+        if (context == null) {
+            return values;
+        }
+        for (int i = 0; i + 1 < context.length; i += 2) {
+            values.put(String.valueOf(context[i]), context[i + 1]);
+        }
+        return values;
+    }
+
+    private Throwable rootCause(Throwable error) {
+        Throwable current = error;
+        while (current != null && current.getCause() != null && current.getCause() != current) {
+            current = current.getCause();
+        }
+        return current;
+    }
+
+    private SQLException findSqlException(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof SQLException sqlException) {
+                return sqlException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 }

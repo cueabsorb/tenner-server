@@ -24,6 +24,7 @@ import org.springframework.web.context.request.async.AsyncRequestNotUsableExcept
 import java.net.ConnectException;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.sql.SQLException;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -83,6 +84,13 @@ public class GlobalExceptionHandler {
                 e.getMessage());
     }
 
+    @ExceptionHandler(DataAccessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDataAccessException(DataAccessException e, HttpServletRequest request) {
+        logDatabaseException("Database access exception", e, request);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(500, "服务暂时不可用：数据库访问异常"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleException(Exception e, HttpServletRequest request) {
         if (isClientAbort(e)) {
@@ -95,6 +103,7 @@ public class GlobalExceptionHandler {
 
         Throwable root = rootCause(e);
         String clientMessage = resolveClientMessage(e);
+        SQLException sqlException = findSqlException(e);
         log.error("Unexpected error on {} {}: rawError={}({}), rootCause={}({}) -> clientMessage={}",
                 request.getMethod(),
                 request.getRequestURI(),
@@ -104,6 +113,9 @@ public class GlobalExceptionHandler {
                 root == null ? "null" : root.getMessage(),
                 clientMessage,
                 e);
+        if (sqlException != null || isInstance(e, DataAccessException.class) || isInstance(root, DataAccessException.class)) {
+            logDatabaseException("Database exception detail", e, request);
+        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(500, clientMessage));
     }
@@ -158,5 +170,32 @@ public class GlobalExceptionHandler {
 
     private boolean isInstance(Throwable error, Class<?> type) {
         return error != null && type.isAssignableFrom(error.getClass());
+    }
+
+    private void logDatabaseException(String message, Throwable error, HttpServletRequest request) {
+        Throwable root = rootCause(error);
+        SQLException sqlException = findSqlException(error);
+        log.error("{} on {} {}: exceptionClass={}, exceptionMessage={}, rootClass={}, rootMessage={}, sqlState={}, vendorErrorCode={}",
+                message,
+                request.getMethod(),
+                request.getRequestURI(),
+                error.getClass().getName(),
+                error.getMessage(),
+                root == null ? null : root.getClass().getName(),
+                root == null ? null : root.getMessage(),
+                sqlException == null ? null : sqlException.getSQLState(),
+                sqlException == null ? null : sqlException.getErrorCode(),
+                error);
+    }
+
+    private SQLException findSqlException(Throwable error) {
+        Throwable current = error;
+        while (current != null) {
+            if (current instanceof SQLException sqlException) {
+                return sqlException;
+            }
+            current = current.getCause();
+        }
+        return null;
     }
 }

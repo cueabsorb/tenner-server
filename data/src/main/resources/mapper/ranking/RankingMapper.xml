@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.irallyin.server.data.mapper.RankingMapper">
+
+    <select id="findLatestSnapshot" resultType="map">
+        SELECT `id`,
+               `updated_at`,
+               `next_refresh_at`
+        FROM `ir_profile`.`ranking_snapshots`
+        WHERE `status` = 0
+        ORDER BY `updated_at` DESC, `created_at` DESC
+        LIMIT 1
+    </select>
+
+    <select id="listWorldPlayers" resultType="map">
+        SELECT `gender`,
+               `rank_no`,
+               `name`,
+               `country`,
+               `points`,
+               `source`
+        FROM `ir_profile`.`world_ranking_players`
+        WHERE `snapshot_id` = #{snapshotId}
+          AND `status` = 0
+        ORDER BY `gender`, `rank_no`
+    </select>
+
+    <select id="listCityPlayers" resultType="map">
+        SELECT `rank_no`,
+               `name`,
+               `city`,
+               `level`,
+               `ntrp`,
+               `utr`,
+               `matches`,
+               `group_wins`
+        FROM `ir_profile`.`city_ranking_players`
+        WHERE `snapshot_id` = #{snapshotId}
+          AND `status` = 0
+        ORDER BY `city`, `level` DESC, `rank_no`
+    </select>
+
+</mapper>

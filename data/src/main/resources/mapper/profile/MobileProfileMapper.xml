@@ -1032,6 +1032,17 @@
         </trim>
     </insert>
 
+    <update id="markCourtPendingReviewForChange">
+        UPDATE `ir_profile`.`courts`
+        SET `approval_status` = 'pending',
+            `venue_status` = 'pending_review',
+            `updated_at` = CURRENT_TIMESTAMP
+        WHERE `id` = #{courtId}
+          AND `approval_status` = 'approved'
+          AND `venue_status` = 'active'
+          AND `status` = 0
+    </update>
+
     <update id="deactivatePrimaryHabitCourts">
         UPDATE `ir_profile`.`habit_courts`
         SET `is_primary` = 0

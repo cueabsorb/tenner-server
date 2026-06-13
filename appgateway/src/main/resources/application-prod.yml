@@ -1,0 +1,9 @@
+# Production-only appgateway overrides.
+
+logging:
+  file:
+    path: ${LOG_PATH:/var/log/irallyin}
+  level:
+    com.irallyin.server: ${APP_LOG_LEVEL:INFO}
+    org.springframework.security: ${SECURITY_LOG_LEVEL:WARN}
+    org.apache.shardingsphere: WARN
