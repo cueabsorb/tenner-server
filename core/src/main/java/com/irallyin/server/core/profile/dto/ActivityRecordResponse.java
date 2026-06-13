@@ -15,6 +15,9 @@ public class ActivityRecordResponse {
     private String location;
     private String title;
     private String body;
+    private String startedAt;
+    private Integer durationMinutes;
+    private String partnerName;
     private List<FeedMetricResponse> metrics;
     private Integer badges;
     private Integer likeCount;

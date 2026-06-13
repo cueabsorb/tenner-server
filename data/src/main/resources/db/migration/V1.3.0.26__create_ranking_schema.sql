@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS `ir_profile`.`world_ranking_players` (
     `name` VARCHAR(120) NOT NULL COMMENT '球员姓名',
     `country` VARCHAR(80) NULL COMMENT '国家/地区',
     `points` INT NULL COMMENT '排名积分',
+    `ntrp` DECIMAL(3,1) NOT NULL DEFAULT 7.0 COMMENT 'NTRP评级，职业球员默认7.0',
     `source` VARCHAR(20) NOT NULL COMMENT '数据来源: ATP/WTA',
     `avatar_url` VARCHAR(512) NULL COMMENT '头像URL，NULL时客户端使用App默认logo',
     `status` TINYINT NOT NULL DEFAULT 0 COMMENT '数据状态: 0=正常, -1=删除',

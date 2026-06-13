@@ -52,6 +52,7 @@ public class RankingService {
                 .name(stringValue(row.get("name")))
                 .country(stringValue(row.get("country")))
                 .points(intValue(row.get("points")))
+                .ntrp(decimalValue(row.get("ntrp")))
                 .source(stringValue(row.get("source")))
                 .build();
     }

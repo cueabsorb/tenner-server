@@ -18,6 +18,7 @@
                `name`,
                `country`,
                `points`,
+               `ntrp`,
                `source`
         FROM `ir_profile`.`world_ranking_players`
         WHERE `snapshot_id` = #{snapshotId}

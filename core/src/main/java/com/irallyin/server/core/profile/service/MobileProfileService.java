@@ -1239,6 +1239,10 @@ public class MobileProfileService {
         if (!StringUtils.hasText(title)) {
             title = sessionTypeLabel(sessionType) + "记录";
         }
+        String partnerName = null;
+        if (StringUtils.hasText(notes) && notes.startsWith("跟 ")) {
+            partnerName = normalizeNullable(notes.substring(2));
+        }
 
         String location = Arrays.asList(
                         normalizeNullable((String) rowValue(row, "city")),
@@ -1273,6 +1277,9 @@ public class MobileProfileService {
                 .location(location)
                 .title(title)
                 .body(notes == null ? (courtName == null ? "运动记录已保存" : courtName) : notes)
+                .startedAt(startedAt == null ? null : startedAt.toString())
+                .durationMinutes(duration)
+                .partnerName(partnerName)
                 .metrics(metrics)
                 .badges(0)
                 .likeCount(Optional.ofNullable(integerValue(rowValue(row, "like_count"))).orElse(0))
