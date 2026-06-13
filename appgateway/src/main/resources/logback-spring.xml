@@ -46,8 +46,8 @@
         </encoder>
     </appender>
 
-    <!-- Dev profile -->
-    <springProfile name="dev">
+    <!-- Non-prod profiles: dev/local/test/aliyun/etc. -->
+    <springProfile name="!prod">
         <logger name="com.irallyin.server" level="INFO"/>
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>

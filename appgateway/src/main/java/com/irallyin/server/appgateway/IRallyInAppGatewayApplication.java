@@ -7,6 +7,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 
@@ -16,12 +17,6 @@ import java.util.Arrays;
 @Slf4j
 @SpringBootApplication(scanBasePackages = "com.irallyin.server", exclude = {MongoAutoConfiguration.class})
 public class IRallyInAppGatewayApplication extends SpringBootServletInitializer {
-
-    private final Environment environment;
-
-    public IRallyInAppGatewayApplication(Environment environment) {
-        this.environment = environment;
-    }
 
     public static void main(String[] args) {
         SpringApplication.run(IRallyInAppGatewayApplication.class, args);
@@ -33,7 +28,9 @@ public class IRallyInAppGatewayApplication extends SpringBootServletInitializer 
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void logRuntimeInfo() {
+    public void logRuntimeInfo(ApplicationReadyEvent event) {
+        ApplicationContext context = event.getApplicationContext();
+        Environment environment = context.getEnvironment();
         log.info("IRallyIn appgateway started. activeProfiles={}, userDir={}, loggingFilePath={}",
                 Arrays.toString(environment.getActiveProfiles()),
                 Paths.get("").toAbsolutePath(),

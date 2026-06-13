@@ -94,6 +94,6 @@ mybatis-plus:
 logging:
   config: classpath:logback-spring.xml
   file:
-    path: ${irallyin.vars.logging.log-path:../log}
+    path: ${LOG_PATH:${irallyin.vars.logging.log-path:${catalina.base:..}/logs}}
   level:
     com.irallyin.server: INFO

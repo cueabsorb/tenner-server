@@ -71,7 +71,7 @@ springdoc:
 logging:
   config: classpath:logback-spring.xml
   file:
-    path: ${irallyin.vars.logging.log-path:../log}
+    path: ${LOG_PATH:${irallyin.vars.logging.log-path:${catalina.base:..}/logs}}
   level:
     com.irallyin.server: ${irallyin.vars.logging.application-level}
     org.springframework.security: ${irallyin.vars.logging.security-level}
