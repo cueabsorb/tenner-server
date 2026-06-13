@@ -617,7 +617,17 @@ public class MobileProfileService {
                 .distinct()
                 .limit(200)
                 .toList();
-        Set<String> imported = new HashSet<>(mobileProfileMapper.findImportedPlaySessionHealthkitUuids(userId, uuids));
+        Set<String> imported;
+        try {
+            imported = new HashSet<>(mobileProfileMapper.findImportedPlaySessionHealthkitUuids(userId, uuids));
+        } catch (DataAccessException e) {
+            log.error("Query fitness workout import statuses DB failed. userId={}, uuidCount={}, sampleUuids={}",
+                    userId,
+                    uuids.size(),
+                    sampleValues(uuids, 5),
+                    e);
+            throw e;
+        }
         return uuids.stream()
                 .map(uuid -> FitnessWorkoutImportStatusResponse.builder()
                         .healthkitUuid(uuid)
@@ -630,7 +640,16 @@ public class MobileProfileService {
     public ActivityRecordResponse importFitnessWorkoutAsActivityRecord(String userId, FitnessWorkoutSessionRequest request) {
         Map<String, Object> user = requireUser(userId);
         String healthkitUuid = normalize(request.getHealthkitUuid());
-        Map<String, Object> existing = mobileProfileMapper.findPlaySessionByHealthkitUuid(userId, healthkitUuid);
+        Map<String, Object> existing;
+        try {
+            existing = mobileProfileMapper.findPlaySessionByHealthkitUuid(userId, healthkitUuid);
+        } catch (DataAccessException e) {
+            log.error("Query imported fitness workout DB failed. userId={}, healthkitUuid={}",
+                    userId,
+                    healthkitUuid,
+                    e);
+            throw e;
+        }
         if (existing != null) {
             return toActivityRecordResponse(existing, userId);
         }
@@ -673,8 +692,18 @@ public class MobileProfileService {
         values.put("notes", noteParts.isEmpty() ? "来自 HealthKit" : String.join(" · ", noteParts));
         values.put("privacy_level", "matchedPlayers");
         values.put("healthkit_uuid", healthkitUuid);
-        mobileProfileMapper.insertPlaySession(values);
-        writeEditLog(userId, "fitness_activity_record");
+        try {
+            mobileProfileMapper.insertPlaySession(values);
+            writeEditLog(userId, "fitness_activity_record");
+        } catch (DataAccessException e) {
+            log.error("Import fitness workout DB write failed. userId={}, healthkitUuid={}, startedAt={}, values={}",
+                    userId,
+                    healthkitUuid,
+                    startedAt,
+                    values,
+                    e);
+            throw e;
+        }
 
         Map<String, Object> created = mobileProfileMapper.findPlaySessionById(sessionId, userId);
         if (created == null) {
@@ -720,6 +749,13 @@ public class MobileProfileService {
             case "highIntensityIntervalTraining" -> "hiit";
             default -> sportType.length() <= 20 ? sportType : "other";
         };
+    }
+
+    private List<String> sampleValues(List<String> values, int limit) {
+        if (values == null || values.isEmpty()) {
+            return List.of();
+        }
+        return values.stream().limit(limit).toList();
     }
 
     @Transactional
