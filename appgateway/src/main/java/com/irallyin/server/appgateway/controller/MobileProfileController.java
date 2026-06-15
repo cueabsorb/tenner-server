@@ -454,6 +454,46 @@ public class MobileProfileController {
         }
     }
 
+    @PostMapping("/messages/list")
+    @Operation(summary = "获取APP消息列表")
+    public ApiResponse<List<AppMessageResponse>> listMessages(
+            Authentication authentication,
+            @RequestParam(required = false, defaultValue = "all") String type,
+            @RequestParam(required = false, defaultValue = "100") Integer limit
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.listAppMessages(currentUserId(authentication), type, limit));
+        } catch (Exception e) {
+            log.error("Failed to list app messages: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/messages/unread-count")
+    @Operation(summary = "获取APP未读消息数")
+    public ApiResponse<AppMessageUnreadCountResponse> unreadMessageCount(Authentication authentication) {
+        try {
+            return ApiResponse.success(mobileProfileService.countUnreadAppMessages(currentUserId(authentication)));
+        } catch (Exception e) {
+            log.error("Failed to count unread app messages: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
+    @PostMapping("/messages/chat")
+    @Operation(summary = "发送聊天消息")
+    public ApiResponse<AppMessageResponse> sendChatMessage(
+            Authentication authentication,
+            @Valid @RequestBody AppMessageSendRequest request
+    ) {
+        try {
+            return ApiResponse.success(mobileProfileService.sendChatMessage(currentUserId(authentication), request));
+        } catch (Exception e) {
+            log.error("Failed to send chat message: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
+
     @PostMapping("/equipment/rackets")
     @Operation(summary = "添加我的球拍装备")
     public ApiResponse<UserRacketAddResponse> addUserRacket(Authentication authentication, @Valid @RequestBody UserRacketAddRequest request) {

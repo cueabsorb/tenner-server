@@ -484,6 +484,74 @@ public class MobileProfileService {
                 .toList();
     }
 
+    public List<AppMessageResponse> listAppMessages(String userId, String messageType, Integer limit) {
+        requireUser(userId);
+        String normalizedType = normalizeMessageType(messageType);
+        int safeLimit = Math.max(1, Math.min(limit == null ? 100 : limit, 200));
+        return mobileProfileMapper.findAppMessages(userId, normalizedType, safeLimit)
+                .stream()
+                .map(row -> toAppMessageResponse(row, userId))
+                .toList();
+    }
+
+    public AppMessageUnreadCountResponse countUnreadAppMessages(String userId) {
+        requireUser(userId);
+        int chatCount = mobileProfileMapper.countUnreadAppMessages(userId, "chat");
+        int systemCount = mobileProfileMapper.countUnreadAppMessages(userId, "system");
+        return AppMessageUnreadCountResponse.builder()
+                .totalUnreadCount(chatCount + systemCount)
+                .chatUnreadCount(chatCount)
+                .systemUnreadCount(systemCount)
+                .build();
+    }
+
+    @Transactional
+    public AppMessageResponse sendChatMessage(String userId, AppMessageSendRequest request) {
+        requireUser(userId);
+        String recipientId = normalizeNullable(request.getRecipientId());
+        if (!StringUtils.hasText(recipientId)) {
+            throw new BusinessException(10001, "接收用户不能为空");
+        }
+        if (Objects.equals(userId, recipientId)) {
+            throw new BusinessException(10001, "不能给自己发送消息");
+        }
+        requireUser(recipientId);
+
+        String content = normalizeNullable(request.getContent());
+        if (!StringUtils.hasText(content)) {
+            throw new BusinessException(10001, "消息内容不能为空");
+        }
+        contentSafetyService.assertSafeText(content, "聊天消息");
+
+        String messageId = UUID.randomUUID().toString();
+        Map<String, Object> values = new LinkedHashMap<>();
+        values.put("id", messageId);
+        values.put("message_type", "chat");
+        values.put("sender_id", userId);
+        values.put("recipient_id", recipientId);
+        values.put("title", null);
+        values.put("content", content);
+        values.put("related_type", null);
+        values.put("related_id", null);
+        mobileProfileMapper.insertAppMessage(values);
+
+        return mobileProfileMapper.findAppMessages(userId, "chat", 1)
+                .stream()
+                .filter(row -> Objects.equals(messageId, rowValue(row, "id")))
+                .findFirst()
+                .map(row -> toAppMessageResponse(row, userId))
+                .orElseGet(() -> AppMessageResponse.builder()
+                        .id(messageId)
+                        .messageType("chat")
+                        .direction("outbound")
+                        .senderId(userId)
+                        .recipientId(recipientId)
+                        .content(content)
+                        .readByRecipient(false)
+                        .createdAt(LocalDateTime.now().toString())
+                        .build());
+    }
+
     @Transactional
     public MatchRequestResponse createMatchRequest(String userId, MatchRequestCreateRequest request) {
         requireUser(userId);
@@ -1346,6 +1414,39 @@ public class MobileProfileService {
                 .note(matchNoteText((String) rowValue(row, "note"), neededPlayers))
                 .distanceText("附近")
                 .build();
+    }
+
+    private AppMessageResponse toAppMessageResponse(Map<String, Object> row, String viewerUserId) {
+        String senderId = (String) rowValue(row, "sender_id");
+        String recipientId = (String) rowValue(row, "recipient_id");
+        LocalDateTime createdAt = localDateTimeValue(rowValue(row, "created_at"));
+        return AppMessageResponse.builder()
+                .id((String) rowValue(row, "id"))
+                .messageType((String) rowValue(row, "message_type"))
+                .direction(Objects.equals(senderId, viewerUserId) ? "outbound" : "inbound")
+                .senderId(senderId)
+                .senderName(Optional.ofNullable(normalizeNullable((String) rowValue(row, "sender_name"))).orElse("系统通知"))
+                .senderAvatarUrl((String) rowValue(row, "sender_avatar_url"))
+                .recipientId(recipientId)
+                .title((String) rowValue(row, "title"))
+                .content((String) rowValue(row, "content"))
+                .readByRecipient(rowValue(row, "read_at") != null)
+                .createdAt(createdAt == null ? null : createdAt.toString())
+                .build();
+    }
+
+    private String normalizeMessageType(String messageType) {
+        String normalized = normalizeNullable(messageType);
+        if (!StringUtils.hasText(normalized) || "all".equalsIgnoreCase(normalized)) {
+            return null;
+        }
+        if ("chat".equalsIgnoreCase(normalized)) {
+            return "chat";
+        }
+        if ("system".equalsIgnoreCase(normalized)) {
+            return "system";
+        }
+        throw new BusinessException(10001, "消息类型不正确");
     }
 
     private String matchAreaText(String city, String district) {
