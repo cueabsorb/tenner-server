@@ -96,6 +96,16 @@ public interface MobileProfileMapper {
 
     int insertMatchRequest(@Param("values") Map<String, Object> values);
 
+    int insertAppMessage(@Param("values") Map<String, Object> values);
+
+    List<Map<String, Object>> findAppMessages(
+            @Param("userId") String userId,
+            @Param("messageType") String messageType,
+            @Param("rowLimit") int rowLimit
+    );
+
+    int countUnreadAppMessages(@Param("userId") String userId, @Param("messageType") String messageType);
+
     List<CourtDO> searchCourts(
             @Param("country") String country,
             @Param("province") String province,

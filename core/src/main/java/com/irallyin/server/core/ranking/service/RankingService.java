@@ -42,7 +42,7 @@ public class RankingService {
                 .updatedAt(dateText(snapshot.get("updated_at")))
                 .nextRefreshAt(dateText(snapshot.get("next_refresh_at")))
                 .men(worldPlayers.stream().filter(player -> "men".equals(player.getGender())).toList())
-                .women(worldPlayers.stream().filter(player -> "women".equals(player.getGender())).toList())
+                .women(worldPlayers.stream().filter(player -> "woman".equals(player.getGender())).toList())
                 .city(rankingMapper.listCityPlayers(snapshotId).stream().map(this::toCityPlayer).toList())
                 .build();
     }

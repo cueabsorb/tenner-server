@@ -745,6 +745,59 @@
         </trim>
     </insert>
 
+    <insert id="insertAppMessage">
+        INSERT INTO `ir_message`.`app_messages`
+        (`id`, `message_type`, `sender_id`, `recipient_id`, `title`, `content`, `related_type`, `related_id`, `status`)
+        VALUES
+        (
+            #{values.id},
+            #{values.message_type},
+            #{values.sender_id},
+            #{values.recipient_id},
+            #{values.title},
+            #{values.content},
+            #{values.related_type},
+            #{values.related_id},
+            0
+        )
+    </insert>
+
+    <select id="findAppMessages" resultType="map">
+        SELECT m.`id`,
+               m.`message_type`,
+               m.`sender_id`,
+               sender.`display_name` AS sender_name,
+               sender.`avatar_url` AS sender_avatar_url,
+               m.`recipient_id`,
+               m.`title`,
+               m.`content`,
+               m.`read_at`,
+               m.`created_at`
+        FROM `ir_message`.`app_messages` m
+        LEFT JOIN `ir_auth`.`users` sender
+          ON sender.`id` = m.`sender_id`
+         AND sender.`status` = 0
+         AND sender.`deleted_at` IS NULL
+        WHERE m.`status` = 0
+          AND (m.`recipient_id` = #{userId} OR m.`sender_id` = #{userId})
+          <if test="messageType != null and messageType != ''">
+          AND m.`message_type` = #{messageType}
+          </if>
+        ORDER BY m.`created_at` DESC
+        LIMIT #{rowLimit}
+    </select>
+
+    <select id="countUnreadAppMessages" resultType="int">
+        SELECT COUNT(*)
+        FROM `ir_message`.`app_messages`
+        WHERE `recipient_id` = #{userId}
+          AND `status` = 0
+          AND `read_at` IS NULL
+          <if test="messageType != null and messageType != ''">
+          AND `message_type` = #{messageType}
+          </if>
+    </select>
+
     <select id="searchCourts" resultType="com.irallyin.server.data.domain.CourtDO">
         SELECT c.`id`,
                c.`country`,
