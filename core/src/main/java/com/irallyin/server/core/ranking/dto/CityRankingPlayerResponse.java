@@ -16,4 +16,5 @@ public class CityRankingPlayerResponse {
     BigDecimal utr;
     Integer matches;
     Integer groupWins;
+    String avatarUrl;
 }

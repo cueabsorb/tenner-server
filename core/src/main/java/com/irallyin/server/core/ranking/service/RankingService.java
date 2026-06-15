@@ -1,5 +1,6 @@
 package com.irallyin.server.core.ranking.service;
 
+import com.irallyin.server.core.oss.AliyunOssService;
 import com.irallyin.server.core.ranking.dto.CityRankingPlayerResponse;
 import com.irallyin.server.core.ranking.dto.RankingSnapshotResponse;
 import com.irallyin.server.core.ranking.dto.WorldRankingPlayerResponse;
@@ -17,6 +18,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RankingService {
     private final RankingMapper rankingMapper;
+    private final AliyunOssService aliyunOssService;
 
     public RankingSnapshotResponse getLatestSnapshot() {
         Map<String, Object> snapshot = rankingMapper.findLatestSnapshot();
@@ -54,6 +56,7 @@ public class RankingService {
                 .points(intValue(row.get("points")))
                 .ntrp(decimalValue(row.get("ntrp")))
                 .source(stringValue(row.get("source")))
+                .avatarUrl(accessibleAvatarUrl(row.get("avatar_url")))
                 .build();
     }
 
@@ -67,7 +70,20 @@ public class RankingService {
                 .utr(decimalValue(row.get("utr")))
                 .matches(intValue(row.get("matches")))
                 .groupWins(intValue(row.get("group_wins")))
+                .avatarUrl(accessibleAvatarUrl(row.get("avatar_url")))
                 .build();
+    }
+
+    private String accessibleAvatarUrl(Object value) {
+        String avatarUrl = stringValue(value);
+        if (avatarUrl == null || avatarUrl.isBlank()) {
+            return null;
+        }
+        try {
+            return aliyunOssService.resolveAccessibleUrl(avatarUrl);
+        } catch (RuntimeException ex) {
+            return avatarUrl;
+        }
     }
 
     private String dateText(Object value) {

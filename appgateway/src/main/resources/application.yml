@@ -79,6 +79,22 @@ google:
     client-id: ${irallyin.vars.google.oauth.client-id}
     client-secret: ${irallyin.vars.google.oauth.client-secret}
 
+irallyin:
+  oss:
+    enabled: ${irallyin.vars.oss.enabled:false}
+    endpoint: ${irallyin.vars.oss.endpoint:}
+    bucket-name: ${irallyin.vars.oss.bucket-name:}
+    access-key-id: ${irallyin.vars.oss.access-key-id:}
+    access-key-secret: ${irallyin.vars.oss.access-key-secret:}
+    public-base-url: ${irallyin.vars.oss.public-base-url:${irallyin.vars.oss.cdn-domain:}}
+    object-key-prefix: ${irallyin.vars.oss.object-key-prefix:uploads}
+    allowed-read-prefixes: ${irallyin.vars.oss.allowed-read-prefixes:uploads,image}
+    image-dir: ${irallyin.vars.oss.image-dir:images}
+    video-dir: ${irallyin.vars.oss.video-dir:videos}
+    image-max-size-mb: ${irallyin.vars.oss.image-max-size-mb:20}
+    video-max-size-mb: ${irallyin.vars.oss.video-max-size-mb:500}
+    signed-url-expire-hours: ${irallyin.vars.oss.signed-url-expire-hours:24}
+
 mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml
   global-config:

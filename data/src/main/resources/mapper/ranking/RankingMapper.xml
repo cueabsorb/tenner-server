@@ -19,7 +19,8 @@
                `country`,
                `points`,
                `ntrp`,
-               `source`
+               `source`,
+               `avatar_url`
         FROM `ir_profile`.`world_ranking_players`
         WHERE `snapshot_id` = #{snapshotId}
           AND `status` = 0
@@ -34,7 +35,8 @@
                `ntrp`,
                `utr`,
                `matches`,
-               `group_wins`
+               `group_wins`,
+               `avatar_url`
         FROM `ir_profile`.`city_ranking_players`
         WHERE `snapshot_id` = #{snapshotId}
           AND `status` = 0

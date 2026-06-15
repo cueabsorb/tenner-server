@@ -15,4 +15,5 @@ public class WorldRankingPlayerResponse {
     Integer points;
     BigDecimal ntrp;
     String source;
+    String avatarUrl;
 }
